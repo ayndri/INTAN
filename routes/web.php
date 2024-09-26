@@ -6,6 +6,7 @@ use App\Http\Controllers\laravel_example\UserManagement;
 use App\Http\Controllers\authentications\LoginCover;
 use App\Http\Controllers\authentications\ForgotPasswordCover;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 
 /*
@@ -52,6 +53,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/store', [BrandController::class, 'store'])->name('store');
         Route::get('{brand_edit}/edit', [BrandController::class, 'edit'])->name('edit');
         Route::get('{brand_edit}/delete', [BrandController::class, 'destroy'])->name('destroy');
+    });
+
+    //brands
+    Route::group(['prefix' => 'units', 'as' => 'units.'], function () {
+        Route::get('/', [UnitController::class, 'index'])->name('index');
+        Route::get('/list', [UnitController::class, 'list'])->name('list');
+        Route::post('/store', [UnitController::class, 'store'])->name('store');
+        Route::get('{unit_id}/edit', [UnitController::class, 'edit'])->name('edit');
+        Route::get('{unit_id}/delete', [UnitController::class, 'destroy'])->name('destroy');
     });
 
     // Main Page Route

@@ -25,8 +25,8 @@ class SaleFactory extends Factory
         $shippingCost = $orderType === 'online' ? $this->faker->randomFloat(2, 10, 100) : 0;
 
         return [
-            'product_id' => Product::factory(), // Buat produk acak
-            'customer_id' => Customer::factory(), // Buat customer acak
+            'product_id' => Product::inRandomOrder()->first()->id, // Buat produk acak
+            'customer_id' => Customer::inRandomOrder()->first()->id, // Buat customer acak
             'quantity' => $this->faker->numberBetween(1, 100), // Jumlah acak
             'selling_price' => $this->faker->randomFloat(2, 100, 1000), // Harga jual acak
             'total' => 0, // Total akan dihitung nanti

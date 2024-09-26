@@ -22,7 +22,7 @@ class InventoryMovementFactory extends Factory
     public function definition()
     {
         return [
-            'product_id' => Product::factory(),
+            'product_id' => Product::inRandomOrder()->first()->id,
             'type' => $this->faker->randomElement(['in', 'out']),
             'quantity' => $this->faker->numberBetween(1, 100),
             'transaction_date' => $this->faker->dateTimeThisYear(),

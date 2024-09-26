@@ -104,6 +104,12 @@
       "slug": "brands.index"
     },
     {
+      "url": "units",
+      "name": "Units",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "units.index"
+    },
+    {
       "url": "app/email",
       "name": "Email",
       "icon": "menu-icon tf-icons ti ti-mail",

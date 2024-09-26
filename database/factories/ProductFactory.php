@@ -30,8 +30,8 @@ class ProductFactory extends Factory
             'price' => $faker->numberBetween(10000, 1000000) . '.00',
             'cost' => $faker->numberBetween(10000, 1000000) . '.00', // biaya acak antara 10.000 dan 1.000.000
             'stock' => $faker->numberBetween(1, 100),
-            'unit_id' => Unit::factory(),
-            'brand_id' => Brand::factory(),
+            'unit_id' => Unit::inRandomOrder()->first()->id,  // Pilih unit secara acak dari yang sudah ada
+            'brand_id' => Brand::inRandomOrder()->first()->id,  // Pilih brand secara acak dari yang sudah ada
             'status' => true,
             'product_image' => $faker->imageUrl(640, 480, 'technics', true),
         ];

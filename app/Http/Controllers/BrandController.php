@@ -24,6 +24,7 @@ class BrandController extends Controller
         ];
 
         $search = $request->input('search.value'); // Get search value
+        $statusFilter = $request->input('status_filter');
         $totalData = Brand::count(); // Total count of brands
         $totalFiltered = $totalData;
 
@@ -40,32 +41,48 @@ class BrandController extends Controller
             ->limit($limit)
             ->orderBy($order, $dir);
 
-        // Handle search functionality
-        if (!empty($search)) {
-            $brandsQuery->where(function ($query) use ($search) {
-                $query->where('brands.id', 'LIKE', "%{$search}%")
-                    ->orWhere('brands.brand_name', 'LIKE', "%{$search}%");
+        // Handle search and status filter functionality
+        if (!empty($search) || !empty($statusFilter)) {
+            $brandsQuery->where(function ($query) use ($search, $statusFilter) {
+                // Apply search filter for 'id' and 'brand_name'
+                if (!empty($search)) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('brands.id', 'LIKE', "%{$search}%")
+                            ->orWhere('brands.brand_name', 'LIKE', "%{$search}%");
+                    });
+                }
 
-                // If search matches 'active' or 'inactive', apply status filter
-                if (strtolower(trim($search)) === 'active') {
-                    $query->orWhere('brands.status', true); // Active status
-                } elseif (strtolower(trim($search)) === 'inactive') {
-                    $query->orWhere('brands.status', false); // Inactive status
+                // Apply status filter for 'active' or 'inactive'
+                if (!empty($statusFilter)) {
+                    if ($statusFilter === 'Active') {
+                        $query->where('brands.status', true);  // Must match active
+                    } elseif ($statusFilter === 'Inactive') {
+                        $query->where('brands.status', false); // Must match inactive
+                    }
                 }
             });
 
             // Count filtered results
-            $totalFiltered = Brand::where(function ($query) use ($search) {
-                $query->where('brands.id', 'LIKE', "%{$search}%")
-                    ->orWhere('brands.brand_name', 'LIKE', "%{$search}%");
+            $totalFiltered = Brand::where(function ($query) use ($search, $statusFilter) {
+                // Apply search filter for 'id' and 'brand_name'
+                if (!empty($search)) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('brands.id', 'LIKE', "%{$search}%")
+                            ->orWhere('brands.brand_name', 'LIKE', "%{$search}%");
+                    });
+                }
 
-                if (strtolower(trim($search)) === 'active') {
-                    $query->orWhere('brands.status', true); // Active status
-                } elseif (strtolower(trim($search)) === 'inactive') {
-                    $query->orWhere('brands.status', false); // Inactive status
+                // Apply status filter for 'active' or 'inactive'
+                if (!empty($statusFilter)) {
+                    if ($statusFilter === 'Active') {
+                        $query->where('brands.status', true);  // Must match active
+                    } elseif ($statusFilter === 'Inactive') {
+                        $query->where('brands.status', false); // Must match inactive
+                    }
                 }
             })->count();
         }
+
 
         // Fetch the result
         $brands = $brandsQuery->get();
@@ -89,10 +106,10 @@ class BrandController extends Controller
             'recordsTotal' => intval($totalData),
             'recordsFiltered' => intval($totalFiltered),
             'data' => $data,
+            'search' => $search,
+            'searchFilter' => $statusFilter
         ]);
     }
-
-
 
     public function store(Request $request)
     {

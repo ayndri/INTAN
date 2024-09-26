@@ -26,8 +26,8 @@ class PurchaseFactory extends Factory
         $total = $quantity * $costPrice; // Menghitung total harga beli
 
         return [
-            'product_id' => Product::factory(), // Menghasilkan product_id acak
-            'supplier_id' => Supplier::factory(), // Menghasilkan supplier_id acak
+            'product_id' => Product::inRandomOrder()->first()->id, // Menghasilkan product_id acak
+            'supplier_id' => Supplier::inRandomOrder()->first()->id, // Menghasilkan supplier_id acak
             'quantity' => $quantity,
             'cost_price' => $costPrice,
             'total' => $total,

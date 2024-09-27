@@ -19,6 +19,31 @@
     );
   }
 
+  $(document).on('input', '#add-product-name', function () {
+    // Get the current value of the product_name input field
+    var productName = $(this).val();
+
+    // Convert product name to Title Case (First letter of each word capitalized)
+    var titleCaseUnitName = productName.toLowerCase().replace(/\b\w/g, function (char) {
+      return char.toUpperCase();
+    });
+
+    // Update the input field value with the Title Case version
+    $(this).val(titleCaseUnitName);
+  });
+
+  // Function to show the preview of the selected image
+  $(document).on('change', '#product-image', function (event) {
+    var reader = new FileReader();
+
+    reader.onload = function (e) {
+      $('#product-image-preview').attr('src', e.target.result).show(); // Set the image preview src attribute
+    };
+
+    // Read the selected file as Data URL
+    reader.readAsDataURL(event.target.files[0]);
+  });
+
   // Function to format numbers as Rupiah
   function formatRupiah(value) {
     // Remove non-numeric characters
@@ -140,9 +165,30 @@
             // User full name
             targets: 2,
             responsivePriority: 4,
-            render: function render(data, type, full, meta) {
-              var $name = full['name'];
-              return '<span class="user-email">' + $name + '</span>';
+            render: function (data, type, full, meta) {
+              var $name = full['name'],
+                $image = full['product_image']; // This now contains the complete image URL or placeholder URL
+
+              var $output =
+                '<img src="' +
+                $image +
+                '" alt="Product Image" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">';
+
+              var $row_output =
+                '<div class="d-flex justify-content-start align-items-center user-name">' +
+                '<div class="avatar-wrapper">' +
+                '<div class="avatar avatar-sm me-3">' +
+                $output +
+                '</div>' +
+                '</div>' +
+                '<div class="d-flex flex-column">' +
+                '<span class="user-email">' +
+                $name +
+                '</span>' +
+                '</div>' +
+                '</div>';
+
+              return $row_output;
             }
           },
           {
@@ -462,33 +508,57 @@
       });
     });
 
-    // edit record
+    // Edit record
     $(document).on('click', '.edit-record', function () {
       var product_id = $(this).data('id'),
         dtrModal = $('.dtr-bs-modal.show');
 
-      // hide responsive modal in small screen
+      // Hide responsive modal in small screen
       if (dtrModal.length) {
         dtrModal.modal('hide');
       }
 
-      // changing the title of offcanvas
+      // Change the title of offcanvas
       $('#offcanvasAddProductLabel').html('Edit Product');
 
-      // get data
+      // Get data
       $.get(''.concat(baseUrl, 'product/').concat(product_id, '/edit'), function (data) {
         $('#product_id').val(data.id);
         $('#add-product-name').val(data.name);
 
-        var sku = data.sku.replace('SKU', ''); // Menghapus "SKU" dari teks
+        var sku = data.sku.replace('SKU', ''); // Remove "SKU" from the text
         $('#add-product-sku').val(sku); // Update SKU
         $('#add-product-stock').val(data.stock); // Update stock instead of quantity
 
-        var price = data.price.replace('.00', ''); // Menghapus .00 jika ada
-        $('#add-product-price').val(price);
+        var price = data.price.replace('.00', ''); // Remove .00 if present
+        var formattedPrice = formatRupiah(price);
+        $('#add-product-price').val(formattedPrice);
 
-        var cost = data.cost.replace('.00', ''); // Menghapus .00 jika ada
-        $('#add-product-cost').val(cost);
+        var cost = data.cost.replace('.00', ''); // Remove .00 if present
+        var formattedCost = formatRupiah(cost);
+        $('#add-product-cost').val(formattedCost);
+
+        // Update brand dropdown
+        $('#add-product-brand').val(data.brand_id).change(); // Set the brand based on the product's data
+
+        // Update unit dropdown
+        $('#add-product-unit').val(data.unit_id).change(); // Set the unit based on the product's data
+
+        // Update status
+        if (data.status !== undefined && (data.status === 1 || data.status === 0)) {
+          $('#add-unit-status').val(data.status).change(); // Set status dropdown value
+        }
+
+        // Display the product image
+        if (data.product_image) {
+          var imageUrl = `${baseUrl}storage/${data.product_image}`; // Construct the correct image URL
+          $('#product-image-preview').attr('src', imageUrl).show(); // Set the image URL and display it
+        } else {
+          // Use a placeholder image if no image is available
+          $('#product-image-preview')
+            .attr('src', 'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis')
+            .show();
+        }
       });
     });
 
@@ -526,20 +596,20 @@
       // Kirim form menggunakan AJAX atau metode yang lain
     });
 
-    // user form validation
+    // User form validation
     var fv = FormValidation.formValidation(addNewProductForm, {
       fields: {
         name: {
           validators: {
             notEmpty: {
-              message: 'Please enter name'
+              message: 'Please enter the name'
             }
           }
         },
         stock: {
           validators: {
             notEmpty: {
-              message: 'Please enter stock quantity'
+              message: 'Please enter the stock quantity'
             },
             integer: {
               message: 'The stock must be a valid integer'
@@ -550,9 +620,6 @@
           validators: {
             notEmpty: {
               message: 'Please enter the price'
-            },
-            numeric: {
-              message: 'The price must be a valid number'
             }
           }
         },
@@ -560,9 +627,6 @@
           validators: {
             notEmpty: {
               message: 'Please enter the cost'
-            },
-            numeric: {
-              message: 'The cost must be a valid number'
             }
           }
         }
@@ -570,53 +634,71 @@
       plugins: {
         trigger: new FormValidation.plugins.Trigger(),
         bootstrap5: new FormValidation.plugins.Bootstrap5({
-          // Use this for enabling/changing valid/invalid class
           eleValidClass: '',
-          rowSelector: function rowSelector(field, ele) {
-            // field is the field name & ele is the field element
+          rowSelector: function fieldRow(field, ele) {
             return '.mb-3';
           }
         }),
         submitButton: new FormValidation.plugins.SubmitButton(),
-        // Submit the form when all fields are valid
-        // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
         autoFocus: new FormValidation.plugins.AutoFocus()
       }
     }).on('core.form.valid', function () {
+      // Remove dots from price and cost
       let price = $('#add-product-price').val().replace(/\./g, '');
       let cost = $('#add-product-cost').val().replace(/\./g, '');
 
-      // Update the form with the modified values
       $('#add-product-price').val(price);
       $('#add-product-cost').val(cost);
 
-      // adding or updating user when form successfully validate
+      // Prepare FormData
+      var formData = new FormData($('#addNewProductForm')[0]); // Create a new FormData object using the form
+
+      // Include the product image in the form data
+      var productImage = $('#product-image')[0].files[0];
+      if (productImage) {
+        formData.append('product_image', productImage);
+      }
+
+      // AJAX request
       $.ajax({
-        data: $('#addNewProductForm').serialize(),
-        url: ''.concat(baseUrl, 'product/store'),
+        data: formData,
+        url: `${baseUrl}product/store`,
         type: 'POST',
-        success: function success(status) {
+        processData: false, // Important: Don't process the data
+        contentType: false, // Important: Set contentType to false
+        success: function (status) {
+          // Refresh data table and hide offcanvas
           dt_user.draw();
           offCanvasForm.offcanvas('hide');
 
-          // sweetalert
+          // Display success notification
           Swal.fire({
             icon: 'success',
-            title: 'Successfully '.concat(status, '!'),
-            text: 'Product '.concat(status, ' Successfully.'),
+            title: `Successfully ${status}!`,
+            text: `Product ${status} successfully.`,
             customClass: {
               confirmButton: 'btn btn-success'
             }
           });
+
+          // Reset the form after success
+          $('#addNewProductForm')[0].reset();
+          fv.resetForm(true); // Reset form validation status
+          $('#product-image-preview').attr(
+            'src',
+            'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis'
+          ); // Reset image preview
         },
-        error: function error(err) {
+        error: function (err) {
           offCanvasForm.offcanvas('hide');
+
+          // Display error notification
           Swal.fire({
             title: 'Duplicate Entry!',
             text: 'Product SKU should be unique.',
             icon: 'error',
             customClass: {
-              confirmButton: 'btn btn-success'
+              confirmButton: 'btn btn-danger'
             }
           });
         }

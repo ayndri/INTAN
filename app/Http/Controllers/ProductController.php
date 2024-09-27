@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use App\Models\Product;
+use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
 
 class ProductController extends Controller
 {
@@ -15,13 +19,17 @@ class ProductController extends Controller
         $mostProduct = Product::orderBy('stock', 'desc')->first()->name;
         $lessQuantity = $product->min('stock');
         $lessProduct = Product::orderBy('stock', 'asc')->first()->name;
+        $brand = Brand::all();
+        $unit = Unit::all();
 
         return view('content.product.index', [
             'totalProduct' => $productCount,
             'mostQuantity' => $mostQuantity,
             'mostProduct' => $mostProduct,
             'lessQuantity' => $lessQuantity,
-            'lessProduct' => $lessProduct
+            'lessProduct' => $lessProduct,
+            'unit' => $unit,
+            'brand' => $brand
         ]);
     }
 
@@ -95,6 +103,13 @@ class ProductController extends Controller
                 $nestedData['price'] = $item->price; // Product selling price
                 $nestedData['cost'] = $item->cost; // Adding cost
 
+                // Determine if the product_image is a full URL or a relative path
+                if (filter_var($item->product_image, FILTER_VALIDATE_URL)) {
+                    $nestedData['product_image'] = $item->product_image; // Use it directly if it's a full URL
+                } else {
+                    $nestedData['product_image'] = asset('storage/' . $item->product_image); // Use storage path if it's a relative path
+                }
+
                 $data[] = $nestedData;
             }
         }
@@ -116,57 +131,82 @@ class ProductController extends Controller
         }
     }
 
-
     public function store(Request $request)
     {
-        // Validasi permintaan (request)
+        // Validate the incoming request data
         $request->validate([
             'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0', // Validasi untuk harga jual
-            'cost' => 'required|numeric|min:0', // Validasi untuk harga pokok
-            'stock' => 'required|integer|min:0', // Validasi untuk stok
+            'price' => 'required|numeric|min:0',    // Validation for selling price
+            'cost' => 'required|numeric|min:0',     // Validation for cost price
+            'stock' => 'required|integer|min:0',    // Validation for stock
+            'brand_id' => 'nullable|exists:brands,id', // Validate that brand_id exists in the brands table
+            'unit_id' => 'nullable|exists:units,id',  // Validate that unit_id exists in the units table
+            'status' => 'required|boolean',         // Validate status as true or false
+            'product_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8192', // Validation for the image
         ]);
 
-        // Jika SKU kosong atau tidak di-input, generate SKU otomatis
+        // Check if SKU is provided; if not, generate a unique SKU
         if (!$request->has('sku') || empty($request->sku)) {
             do {
-                // Generate SKU dengan format "SKU" diikuti dengan angka random unik
                 $sku = 'SKU' . rand(1000, 9999);
-            } while (Product::where('sku', $sku)->exists()); // Memastikan SKU unik
-
+            } while (Product::where('sku', $sku)->exists());
         } else {
-            // Jika SKU di-input secara manual, gunakan SKU yang di-input user
             $sku = 'SKU' . $request->sku;
         }
 
         $productID = $request->id;
+        $imagePath = null;
 
         if ($productID) {
-            // Update item inventaris yang sudah ada
-            $product = Product::updateOrCreate(
-                ['id' => $productID],
-                [
-                    'name' => $request->name,
-                    'sku' => $sku, // Menggunakan SKU yang sudah di-generate
-                    'price' => $request->input('price'), // Tidak perlu number_format
-                    'cost' => $request->input('cost'),   // Tidak perlu number_format
-                    'stock' => $request->stock,
-                ]
-            );
+            // Find the existing product
+            $product = Product::find($productID);
 
-            // Product item diperbarui
-            return response()->json('Updated');
-        } else {
-            // Membuat item inventaris baru
-            $product = Product::create([
+            // Handle the product image upload
+            if ($request->hasFile('product_image')) {
+                // Delete the old image if it exists
+                if ($product && $product->product_image && Storage::disk('public')->exists($product->product_image)) {
+                    Storage::disk('public')->delete($product->product_image);
+                }
+
+                // Store the new image
+                $imagePath = $request->file('product_image')->store('product_images', 'public');
+            } else {
+                // Keep the old image path if a new image is not uploaded
+                $imagePath = $product->product_image;
+            }
+
+            // Update existing product
+            $product->update([
                 'name' => $request->name,
-                'sku' => $sku, // Menggunakan SKU yang sudah di-generate
-                'price' => $request->input('price'), // Tidak perlu number_format
-                'cost' => $request->input('cost'),   // Tidak perlu number_format
+                'sku' => $sku,
+                'price' => $request->input('price'),
+                'cost' => $request->input('cost'),
                 'stock' => $request->stock,
+                'brand_id' => $request->brand_id,
+                'unit_id' => $request->unit_id,
+                'status' => $request->status,
+                'product_image' => $imagePath,
             ]);
 
-            // Product item dibuat
+            return response()->json('Updated');
+        } else {
+            // Create a new product item
+            if ($request->hasFile('product_image')) {
+                $imagePath = $request->file('product_image')->store('product_images', 'public');
+            }
+
+            Product::create([
+                'name' => $request->name,
+                'sku' => $sku,
+                'price' => $request->input('price'),
+                'cost' => $request->input('cost'),
+                'stock' => $request->stock,
+                'brand_id' => $request->brand_id,
+                'unit_id' => $request->unit_id,
+                'status' => $request->status,
+                'product_image' => $imagePath,
+            ]);
+
             return response()->json('Created');
         }
     }
@@ -183,6 +223,22 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        $product = Product::where('id', $id)->delete();
+        // Find the product by ID
+        $product = Product::find($id);
+
+        if ($product) {
+            // Check if the product has an image
+            if ($product->product_image && Storage::disk('public')->exists($product->product_image)) {
+                // Delete the image from storage
+                Storage::disk('public')->delete($product->product_image);
+            }
+
+            // Delete the product record from the database
+            $product->delete();
+
+            return response()->json(['message' => 'Product and image deleted successfully'], 200);
+        } else {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
     }
 }

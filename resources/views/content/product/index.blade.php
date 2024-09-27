@@ -119,7 +119,7 @@
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body mx-0 flex-grow-0">
-            <form class="add-new-product pt-0" id="addNewProductForm">
+            <form class="add-new-product pt-0" id="addNewProductForm" enctype="multipart/form-data" id="product-form">
                 <input type="hidden" name="id" id="product_id">
                 <!-- Name Field -->
                 <div class="mb-3">
@@ -150,6 +150,47 @@
                     <label class="form-label" for="add-product-stock">Stock</label>
                     <input type="number" id="add-product-stock" class="form-control" placeholder="0" aria-label="Stock" name="stock" />
                 </div>
+
+                <!-- Brand -->
+                <div class="mb-3">
+                    <label class="form-label" for="add-product-brand">Brand</label>
+                    <select name="brand_id" id="add-product-brand" class="form-control">
+                        <option value="" disabled selected>Select Brand</option>
+                        @foreach ($brand as $b)
+                        <option value="{{ $b->id }}">{{ $b->brand_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Unit -->
+                <div class="mb-3">
+                    <label class="form-label" for="add-product-unit">Unit</label>
+                    <select name="unit_id" id="add-product-unit" class="form-control">
+                        <option value="" disabled selected>Select Unit</option>
+                        @foreach ($unit as $u)
+                        <option value="{{ $u->id }}">{{ $u->unit_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Status Field (Active/Inactive) -->
+                <div class="mb-3">
+                    <label class="form-label" for="add-unit-status">Status</label>
+                    <select class="form-control" id="add-unit-status" name="status" aria-label="Status">
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Product Image using Input Type File -->
+                <div class="mb-3">
+                    <label class="form-label">Product Image</label>
+                    <input type="file" class="form-control" id="product-image" name="product_image" accept="image/*" />
+                    <div id="image-preview" class="mt-2">
+                        <img id="product-image-preview" src="https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis" alt="Product Image" style="max-width: 100%; height: auto;" />
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary me-sm-3 me-1 data-submit">Submit</button>
                 <button type="reset" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">Cancel</button>
             </form>

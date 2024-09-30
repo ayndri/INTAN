@@ -110,6 +110,12 @@
       "slug": "units.index"
     },
     {
+      "url": "customers",
+      "name": "Customers",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "customers.index"
+    },
+    {
       "url": "app/email",
       "name": "Email",
       "icon": "menu-icon tf-icons ti ti-mail",

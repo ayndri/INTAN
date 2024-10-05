@@ -76,7 +76,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     //supplier
-    Route::group(['prefix' => 'supplier', 'as' => 'supplier.'], function () {
+    Route::group(['prefix' => 'suppliers', 'as' => 'suppliers.'], function () {
         Route::get('/', [SupplierController::class, 'index'])->name('index');
         Route::get('/list', [SupplierController::class, 'list'])->name('list');
         Route::post('/store', [SupplierController::class, 'store'])->name('store');

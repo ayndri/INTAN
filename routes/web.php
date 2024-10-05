@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SupplierController;
 
 /*
 |--------------------------------------------------------------------------
@@ -72,6 +73,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/store', [CustomerController::class, 'store'])->name('store');
         Route::get('{brand_edit}/edit', [CustomerController::class, 'edit'])->name('edit');
         // Route::get('{brand_edit}/delete', [BrandController::class, 'destroy'])->name('destroy');
+    });
+
+    //supplier
+    Route::group(['prefix' => 'supplier', 'as' => 'supplier.'], function () {
+        Route::get('/', [SupplierController::class, 'index'])->name('index');
+        Route::get('/list', [SupplierController::class, 'list'])->name('list');
+        Route::post('/store', [SupplierController::class, 'store'])->name('store');
+        Route::get('{supplier_id}/edit', [SupplierController::class, 'edit'])->name('edit');
+        Route::get('{supplier_id}/delete', [SupplierController::class, 'destroy'])->name('destroy');
     });
 
     // Main Page Route

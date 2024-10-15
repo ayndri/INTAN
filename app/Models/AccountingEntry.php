@@ -21,6 +21,8 @@ class AccountingEntry extends Model
         'amount',
         'type',
         'entry_date',
+        'sale_id',
+        'purchase_id',
     ];
 
     /**
@@ -32,4 +34,20 @@ class AccountingEntry extends Model
         'amount' => 'decimal:2',
         'entry_date' => 'datetime',
     ];
+
+    /**
+     * Relationship to Sale model.
+     */
+    public function sale()
+    {
+        return $this->belongsTo(Sale::class);
+    }
+
+    /**
+     * Relationship to Purchase model.
+     */
+    public function purchase()
+    {
+        return $this->belongsTo(Purchase::class);
+    }
 }

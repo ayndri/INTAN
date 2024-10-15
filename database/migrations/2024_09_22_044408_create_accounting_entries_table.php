@@ -20,6 +20,13 @@ return new class extends Migration
             $table->decimal('amount', 15, 2);
             $table->enum('type', ['income', 'expense']);
             $table->timestamp('entry_date')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->unsignedBigInteger('sale_id')->nullable(); // Relasi dengan sales untuk pendapatan
+            $table->unsignedBigInteger('purchase_id')->nullable(); // Relasi dengan purchases untuk pengeluaran
+
+            // Foreign key
+            $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade'); // Relasi ke sales
+            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade'); // Relasi ke purchases
+
             $table->timestamps();
         });
     }

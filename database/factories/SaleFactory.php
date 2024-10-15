@@ -25,24 +25,24 @@ class SaleFactory extends Factory
         $shippingCost = $orderType === 'online' ? $this->faker->randomFloat(2, 10, 100) : 0;
 
         return [
-            'product_id' => Product::inRandomOrder()->first()->id, // Buat produk acak
-            'customer_id' => Customer::inRandomOrder()->first()->id, // Buat customer acak
-            'quantity' => $this->faker->numberBetween(1, 100), // Jumlah acak
-            'selling_price' => $this->faker->randomFloat(2, 100, 1000), // Harga jual acak
-            'total' => 0, // Total akan dihitung nanti
-            'sale_date' => $this->faker->dateTimeThisYear(), // Tanggal acak dalam tahun ini
-            'status' => $this->faker->randomElement(['pending', 'in-progress', 'completed', 'cancelled']), // Status acak
-            'order_type' => $orderType, // Order type acak (online atau offline)
-            'shipping_cost' => $shippingCost, // Ongkir jika online, 0 jika offline
+            'product_id' => Product::inRandomOrder()->first()->id, // Select a random product
+            'customer_id' => Customer::inRandomOrder()->first()->id, // Select a random customer
+            'quantity' => $this->faker->numberBetween(1, 100), // Random quantity
+            'selling_price' => $this->faker->randomFloat(2, 100, 1000), // Random selling price
+            'total' => 0, // Total will be calculated later
+            'sale_date' => $this->faker->dateTimeThisYear(), // Sale date in the current year
+            'status' => $this->faker->randomElement(['pending', 'in-progress', 'completed', 'cancelled']), // Random status
+            'order_type' => $orderType, // Random order type (online or offline)
+            'shipping_cost' => $shippingCost, // Shipping cost for online orders, 0 for offline orders
         ];
     }
 
     public function configure()
     {
         return $this->afterMaking(function (Sale $sale) {
-            // Jika diperlukan sesuatu saat pembuatan tapi belum di-save
+            // You can perform additional actions here after making the sale object
         })->afterCreating(function (Sale $sale) {
-            // Hitung total dan simpan setelah penjualan dibuat
+            // Calculate the total and save it after the sale has been created
             $sale->total = ($sale->selling_price * $sale->quantity) + $sale->shipping_cost;
             $sale->save();
         });

@@ -17,13 +17,17 @@ return new class extends Migration
         Schema::create('inventory_movements', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('product_id');
-            $table->enum('type', ['in', 'out']); // in untuk barang masuk, out untuk barang keluar
+            $table->unsignedBigInteger('sale_id')->nullable(); // Relasi ke tabel sales
+            $table->unsignedBigInteger('purchase_id')->nullable(); // Relasi ke tabel purchases
+            $table->enum('type', ['in', 'out']); // in untuk barang masuk (dari pembelian), out untuk barang keluar (dari penjualan)
             $table->integer('quantity');
             $table->timestamp('transaction_date')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->text('description')->nullable(); // Boleh kosong
 
-            // Relasi foreign key dengan tabel products
+            // Relasi foreign key
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('sale_id')->references('id')->on('sales')->onDelete('cascade'); // Relasi ke tabel sales
+            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade'); // Relasi ke tabel purchases
             $table->timestamps();
         });
     }

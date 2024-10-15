@@ -22,7 +22,6 @@ return new class extends Migration
             $table->decimal('selling_price', 15, 2);
             $table->decimal('total', 15, 2);
             $table->timestamp('sale_date')->default(DB::raw('CURRENT_TIMESTAMP'));
-
             $table->enum('status', ['pending', 'in-progress', 'completed', 'cancelled'])->default('pending');
             $table->enum('order_type', ['online', 'offline'])->default('offline');
             $table->decimal('shipping_cost', 15, 2)->nullable();

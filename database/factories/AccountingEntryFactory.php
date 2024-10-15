@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Purchase;
+use App\Models\Sale;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,11 +20,23 @@ class AccountingEntryFactory extends Factory
     {
         $faker = \Faker\Factory::create('id_ID');
 
+        $type = $faker->randomElement(['income', 'expense']); // Randomly choose between income and expense
+
+        // Set sale_id or purchase_id based on the type, with null checks
+        $sale = $type === 'income' ? Sale::inRandomOrder()->first() : null;
+        $purchase = $type === 'expense' ? Purchase::inRandomOrder()->first() : null;
+
+        // Assign the IDs only if the records are found
+        $saleId = $sale ? $sale->id : null;
+        $purchaseId = $purchase ? $purchase->id : null;
+
         return [
             'description' => $faker->sentence, // Random sentence as description
             'amount' => $faker->randomFloat(2, 100, 10000), // Random amount between 100 and 10000 with 2 decimal places
-            'type' => $faker->randomElement(['income', 'expense']), // Randomly choose between income and expense
+            'type' => $type, // Set type as either 'income' or 'expense'
             'entry_date' => $faker->dateTimeBetween('-1 years', 'now'), // Random entry date within the last year
+            'sale_id' => $saleId, // Set sale_id if type is 'income', otherwise null
+            'purchase_id' => $purchaseId, // Set purchase_id if type is 'expense', otherwise null
         ];
     }
 }

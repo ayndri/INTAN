@@ -18,7 +18,7 @@ class Purchase extends Model
      */
     protected $fillable = [
         'product_id',
-        'supplier_id', // Tambahan supplier_id
+        'supplier_id',
         'quantity',
         'cost_price',
         'total',
@@ -50,5 +50,21 @@ class Purchase extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * Relationship to InventoryMovement model.
+     */
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
+    /**
+     * Relationship to AccountingEntry model.
+     */
+    public function accountingEntries()
+    {
+        return $this->hasMany(AccountingEntry::class);
     }
 }

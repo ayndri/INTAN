@@ -21,17 +21,17 @@ class PurchaseFactory extends Factory
     protected $model = Purchase::class;
     public function definition()
     {
-        $quantity = $this->faker->numberBetween(1, 100); // Jumlah barang yang dibeli
-        $costPrice = $this->faker->randomFloat(2, 10, 1000); // Harga beli acak
-        $total = $quantity * $costPrice; // Menghitung total harga beli
+        $quantity = $this->faker->numberBetween(1, 100); // Quantity of products purchased
+        $costPrice = $this->faker->randomFloat(2, 10, 1000); // Random purchase price
+        $total = $quantity * $costPrice; // Calculate total purchase price
 
         return [
-            'product_id' => Product::inRandomOrder()->first()->id, // Menghasilkan product_id acak
-            'supplier_id' => Supplier::inRandomOrder()->first()->id, // Menghasilkan supplier_id acak
+            'product_id' => Product::inRandomOrder()->first()->id, // Generate a random product_id
+            'supplier_id' => Supplier::inRandomOrder()->first()->id, // Generate a random supplier_id
             'quantity' => $quantity,
             'cost_price' => $costPrice,
-            'total' => $total,
-            'purchase_date' => $this->faker->dateTimeThisYear(), // Tanggal pembelian acak
+            'total' => $total, // Calculated total
+            'purchase_date' => $this->faker->dateTimeThisYear(), // Random purchase date within this year
         ];
     }
 }

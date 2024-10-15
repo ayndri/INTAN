@@ -52,8 +52,19 @@ class Sale extends Model
         return $this->belongsTo(Customer::class, 'customer_id');
     }
 
-    // public function calculateTotal()
-    // {
-    //     return ($this->selling_price * $this->quantity) + ($this->order_type == 'online' ? $this->shipping_cost : 0);
-    // }
+    /**
+     * Relationship to InventoryMovement model.
+     */
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
+    /**
+     * Relationship to AccountingEntry model.
+     */
+    public function accountingEntries()
+    {
+        return $this->hasMany(AccountingEntry::class);
+    }
 }

@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('total', 15, 2);
             $table->timestamp('purchase_date')->default(DB::raw('CURRENT_TIMESTAMP'));
 
-            // Relasi foreign key dengan tabel products
+            // Foreign key untuk products dan suppliers
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('cascade');
 

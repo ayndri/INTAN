@@ -22,4 +22,12 @@ class Supplier extends Model
     protected $casts = [
         'status' => 'boolean', // Status akan dikonversi menjadi boolean (true/false)
     ];
+
+    /**
+     * Relationship to Purchase model.
+     */
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
 }

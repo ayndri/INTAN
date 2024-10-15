@@ -23,15 +23,16 @@ class ProductFactory extends Factory
     public function definition()
     {
         $faker = \Faker\Factory::create('id_ID');
+        $faker->unique(true); // Reset the unique generator
 
         return [
             'name' => $faker->words(2, true),
-            'sku' => $faker->unique()->numerify('SKU###'),
+            'sku' => $faker->unique()->numerify('SKU###'), // Generate unique SKU
             'price' => $faker->numberBetween(10000, 1000000) . '.00',
-            'cost' => $faker->numberBetween(10000, 1000000) . '.00', // biaya acak antara 10.000 dan 1.000.000
+            'cost' => $faker->numberBetween(10000, 1000000) . '.00',
             'stock' => $faker->numberBetween(1, 100),
-            'unit_id' => Unit::inRandomOrder()->first()->id,  // Pilih unit secara acak dari yang sudah ada
-            'brand_id' => Brand::inRandomOrder()->first()->id,  // Pilih brand secara acak dari yang sudah ada
+            'unit_id' => Unit::inRandomOrder()->first()->id,
+            'brand_id' => Brand::inRandomOrder()->first()->id,
             'status' => true,
             'product_image' => $faker->imageUrl(640, 480, 'technics', true),
         ];

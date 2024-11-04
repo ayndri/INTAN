@@ -32,7 +32,7 @@ class AccountingEntryFactory extends Factory
 
         return [
             'description' => $faker->sentence, // Random sentence as description
-            'amount' => $faker->randomFloat(2, 100, 10000), // Random amount between 100 and 10000 with 2 decimal places
+            'amount' => $faker->numberBetween(10000, 1000000) . '.00',
             'type' => $type, // Set type as either 'income' or 'expense'
             'entry_date' => $faker->dateTimeBetween('-1 years', 'now'), // Random entry date within the last year
             'sale_id' => $saleId, // Set sale_id if type is 'income', otherwise null

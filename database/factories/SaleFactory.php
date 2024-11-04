@@ -22,13 +22,13 @@ class SaleFactory extends Factory
     public function definition()
     {
         $orderType = $this->faker->randomElement(['online', 'offline']);
-        $shippingCost = $orderType === 'online' ? $this->faker->randomFloat(2, 10, 100) : 0;
+        $shippingCost = $orderType === 'online' ? $this->faker->numberBetween(10000, 1000000) . '.00' : 0;
 
         return [
             'product_id' => Product::inRandomOrder()->first()->id, // Select a random product
             'customer_id' => Customer::inRandomOrder()->first()->id, // Select a random customer
             'quantity' => $this->faker->numberBetween(1, 100), // Random quantity
-            'selling_price' => $this->faker->randomFloat(2, 100, 1000), // Random selling price
+            'selling_price' => $this->faker->numberBetween(10000, 1000000) . '.00',
             'total' => 0, // Total will be calculated later
             'sale_date' => $this->faker->dateTimeThisYear(), // Sale date in the current year
             'status' => $this->faker->randomElement(['pending', 'in-progress', 'completed', 'cancelled']), // Random status

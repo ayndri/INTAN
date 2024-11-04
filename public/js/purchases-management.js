@@ -3,10 +3,10 @@
   /******/ ('use strict');
   var __webpack_exports__ = {};
   /*!*************************************************!*\
-  !*** ./resources/js/product-management.js ***!
+  !*** ./resources/js/purchase-management.js ***!
   \*************************************************/
   /**
-   * Page Product List
+   * Page Purchase List
    */
 
   // Datatable (jquery)
@@ -19,58 +19,17 @@
     );
   }
 
-  $(document).on('input', '#add-product-name', function () {
-    // Get the current value of the product_name input field
-    var productName = $(this).val();
+  $(document).on('input', '#add-purchase-name', function () {
+    // Get the current value of the brand_name input field
+    var brandName = $(this).val();
 
-    // Convert product name to Title Case (First letter of each word capitalized)
-    var titleCaseUnitName = productName.toLowerCase().replace(/\b\w/g, function (char) {
+    // Convert purchase name to Title Case (First letter of each word capitalized)
+    var titleCaseBrandName = brandName.toLowerCase().replace(/\b\w/g, function (char) {
       return char.toUpperCase();
     });
 
     // Update the input field value with the Title Case version
-    $(this).val(titleCaseUnitName);
-  });
-
-  // Function to show the preview of the selected image
-  $(document).on('change', '#product-image', function (event) {
-    var reader = new FileReader();
-
-    reader.onload = function (e) {
-      $('#product-image-preview').attr('src', e.target.result).show(); // Set the image preview src attribute
-    };
-
-    // Read the selected file as Data URL
-    reader.readAsDataURL(event.target.files[0]);
-  });
-
-  // Function to format numbers as Rupiah
-  function formatRupiah(value) {
-    // Remove non-numeric characters
-    const numberString = value.replace(/[^,\d]/g, '').toString();
-    const split = numberString.split(',');
-
-    // Add thousand separators
-    let rupiah = split[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-    // If the decimal part exists and is not '00', append it, otherwise return just the integer part
-    if (split[1] !== undefined && split[1] !== '00') {
-      return rupiah + ',' + split[1];
-    } else {
-      return rupiah; // No decimal part or it's '00'
-    }
-  }
-
-  // Event listener for Price input
-  document.getElementById('add-product-price').addEventListener('input', function (e) {
-    const inputVal = e.target.value;
-    e.target.value = formatRupiah(inputVal);
-  });
-
-  // Event listener for Cost input
-  document.getElementById('add-product-cost').addEventListener('input', function (e) {
-    const inputVal = e.target.value;
-    e.target.value = formatRupiah(inputVal);
+    $(this).val(titleCaseBrandName);
   });
 
   function _unsupportedIterableToArray(o, minLen) {
@@ -95,10 +54,10 @@
   }
   $(function () {
     // Variable declaration for table
-    var dt_user_table = $('.datatables-products'),
+    var dt_user_table = $('.datatables-purchases'),
       select2 = $('.select2'),
       userView = baseUrl + 'app/user/view/account',
-      offCanvasForm = $('#offcanvasAddProduct');
+      offCanvasForm = $('#offcanvasAddBrand');
     if (select2.length) {
       var $this = select2;
       $this.wrap('<div class="position-relative"></div>').select2({
@@ -120,7 +79,7 @@
         processing: true,
         serverSide: true,
         ajax: {
-          url: baseUrl + 'product/list'
+          url: baseUrl + 'purchases/list'
         },
         columns: [
           // Columns according to JSON structure
@@ -128,22 +87,22 @@
             data: '' // Placeholder for any additional UI elements (checkbox, etc.)
           },
           {
-            data: 'id' // Product ID
+            data: 'id' // Purchase ID
           },
           {
-            data: 'name' // Product Name
+            data: 'product_name' // Purchase Name
           },
           {
-            data: 'sku' // SKU (replacing the 'description' column)
+            data: 'supplier_name' // SKU (replacing the 'description' column)
           },
           {
-            data: 'stock' // Product Stock (replacing 'quantity')
+            data: 'purchase_date' // Purchase Stock (replacing 'quantity')
           },
           {
-            data: 'price' // Product Price (you can add this column for price display)
+            data: 'cost_price'
           },
           {
-            data: 'cost' // Product Cost (if you want to display this as well)
+            data: 'total_price'
           },
           {
             data: 'action' // Action buttons (edit/delete)
@@ -170,85 +129,44 @@
             }
           },
           {
-            // User full name
+            // product name
             targets: 2,
             responsivePriority: 4,
-            render: function (data, type, full, meta) {
-              var $name = full['name'],
-                $image = full['product_image']; // This now contains the complete image URL or placeholder URL
-
-              // If the product image is missing or invalid, use a placeholder image
-              if (!$image) {
-                $image = 'https://via.placeholder.com/40'; // Default placeholder image
-              }
-
-              var $output =
-                '<img src="' +
-                $image +
-                '" alt="Product Image" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">';
-
-              var $row_output =
-                '<div class="d-flex justify-content-start align-items-center user-name">' +
-                '<div class="avatar-wrapper">' +
-                '<div class="avatar avatar-sm me-3">' +
-                $output +
-                '</div>' +
-                '</div>' +
-                '<div class="d-flex flex-column">' +
-                '<span class="user-email">' +
-                $name +
-                '</span>' +
-                '</div>' +
-                '</div>';
-
-              return $row_output;
-            }
-          },
-          {
-            // sku
-            targets: 3,
-            responsivePriority: 4,
             render: function render(data, type, full, meta) {
-              var $sku = full['sku'];
-              return '<span class="user-email">' + $sku + '</span>';
+              var $product_name = full['product_name'];
+              return '<span class="product-name">' + $product_name + '</span>';
             }
           },
           {
-            // stock
+            // supplier name
+            targets: 3,
+            render: function render(data, type, full, meta) {
+              var $supplier_name = full['supplier_name'];
+              return '<span class="user-email text-center">' + $supplier_name + '</span>';
+            }
+          },
+          {
+            // purchase date
             targets: 4,
             render: function render(data, type, full, meta) {
-              var $stock = full['stock'];
-              return '<span class="user-email">' + $stock + '</span>';
+              var $purchase_date = full['purchase_date'];
+              return '<span class="user-email text-center">' + $purchase_date + '</span>';
             }
           },
           {
-            // price
+            // cost price
             targets: 5,
             render: function render(data, type, full, meta) {
-              var $price = full['price'];
-
-              var formattedPrice = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0, // Ensure no decimal digits are displayed
-                maximumFractionDigits: 0 // Ensure no decimal digits are displayed
-              }).format($price);
-
-              return '<span class="user-email">' + formattedPrice + '</span>';
+              var $cost_price = full['cost_price'];
+              return '<span class="user-email text-center">' + $cost_price + '</span>';
             }
           },
           {
-            // cost
+            // total
             targets: 6,
             render: function render(data, type, full, meta) {
-              var $cost = full['cost'];
-              var formattedPrice = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0, // Ensure no decimal digits are displayed
-                maximumFractionDigits: 0 // Ensure no decimal digits are displayed
-              }).format($cost);
-              return '<span class="user-email">' + formattedPrice + '</span>';
+              var $total_price = full['total_price'];
+              return '<span class="user-email text-center">' + $total_price + '</span>';
             }
           },
           {
@@ -258,16 +176,17 @@
             searchable: false,
             orderable: false,
             render: function render(data, type, full, meta) {
+              var editUrl = 'purchases' + '/' + full['id'] + '/edit';
+              console.log('Edit URL:', editUrl); // For debugging
+
               return (
-                '<div class="d-inline-block text-nowrap">' +
-                '<button class="btn btn-sm btn-icon edit-record" data-id="'.concat(
-                  full['id'],
-                  '" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddProduct"><i class="ti ti-edit"></i></button>'
-                ) +
-                '<button class="btn btn-sm btn-icon delete-record" data-id="'.concat(
-                  full['id'],
-                  '"><i class="ti ti-trash"></i></button>'
-                ) +
+                '<div class="text-center text-nowrap">' +
+                '<a href="' +
+                editUrl +
+                '" class="btn btn-sm btn-icon edit-record" data-id="' +
+                full['id'] +
+                '" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddBrand">' +
+                '<i class="ti ti-edit"></i></a>' +
                 '</div>'
               );
             }
@@ -297,11 +216,11 @@
             buttons: [
               {
                 extend: 'print',
-                title: 'Products',
+                title: 'Purchases',
                 text: '<i class="ti ti-printer me-2" ></i>Print',
                 className: 'dropdown-item',
                 exportOptions: {
-                  columns: [1, 2, 3, 4, 5, 6],
+                  columns: [1, 2, 3, 4],
                   // prevent avatar to be print
                   format: {
                     body: function body(inner, coldex, rowdex) {
@@ -333,11 +252,11 @@
               },
               {
                 extend: 'csv',
-                title: 'Products',
+                title: 'Purchases',
                 text: '<i class="ti ti-file-text me-2" ></i>Csv',
                 className: 'dropdown-item',
                 exportOptions: {
-                  columns: [1, 2, 3, 4, 5, 6],
+                  columns: [1, 2, 3, 4],
                   // prevent avatar to be print
                   format: {
                     body: function body(inner, coldex, rowdex) {
@@ -356,11 +275,11 @@
               },
               {
                 extend: 'excel',
-                title: 'Products',
+                title: 'Purchases',
                 text: '<i class="ti ti-file-spreadsheet me-2"></i>Excel',
                 className: 'dropdown-item',
                 exportOptions: {
-                  columns: [1, 2, 3, 4, 5, 6],
+                  columns: [1, 2, 3, 4],
                   // prevent avatar to be display
                   format: {
                     body: function body(inner, coldex, rowdex) {
@@ -379,11 +298,11 @@
               },
               {
                 extend: 'pdf',
-                title: 'Products',
+                title: 'Purchases',
                 text: '<i class="ti ti-file-text me-2"></i>Pdf',
                 className: 'dropdown-item',
                 exportOptions: {
-                  columns: [1, 2, 3, 4, 5, 6],
+                  columns: [1, 2, 3, 4],
                   // prevent avatar to be display
                   format: {
                     body: function body(inner, coldex, rowdex) {
@@ -402,11 +321,11 @@
               },
               {
                 extend: 'copy',
-                title: 'Products',
+                title: 'Purchases',
                 text: '<i class="ti ti-copy me-1" ></i>Copy',
                 className: 'dropdown-item',
                 exportOptions: {
-                  columns: [1, 2, 3, 4, 5, 6],
+                  columns: [1, 2, 3, 4],
                   // prevent avatar to be copy
                   format: {
                     body: function body(inner, coldex, rowdex) {
@@ -426,11 +345,10 @@
             ]
           },
           {
-            text: '<i class="ti ti-plus me-0 me-sm-1"></i><span class="d-none d-sm-inline-block">Add New Product</span>',
+            text: '<i class="ti ti-plus me-0 me-sm-1"></i><span class="d-none d-sm-inline-block">Add New Purchase</span>',
             className: 'add-new btn btn-primary',
             attr: {
-              'data-bs-toggle': 'offcanvas',
-              'data-bs-target': '#offcanvasAddProduct'
+              onclick: "window.location.href='/purchases/store'" // Panggil rute store untuk insert
             }
           }
         ],
@@ -471,7 +389,7 @@
 
     // Delete Record
     $(document).on('click', '.delete-record', function () {
-      var product_id = $(this).data('id'),
+      var brand_id = $(this).data('id'),
         dtrModal = $('.dtr-bs-modal.show');
 
       // hide responsive modal in small screen
@@ -496,7 +414,7 @@
           // delete the data
           $.ajax({
             type: 'GET',
-            url: ''.concat(baseUrl, 'product/').concat(product_id, '/delete'),
+            url: ''.concat(baseUrl, 'purchases/').concat(brand_id, '/delete'),
             success: function success() {
               dt_user.draw();
             },
@@ -513,7 +431,7 @@
           Swal.fire({
             icon: 'success',
             title: 'Deleted!',
-            text: 'The product has been deleted!',
+            text: 'The purchase has been deleted!',
             customClass: {
               confirmButton: 'btn btn-success'
             }
@@ -521,7 +439,7 @@
         } else if (result.dismiss === Swal.DismissReason.cancel) {
           Swal.fire({
             title: 'Cancelled',
-            text: 'The Product is not deleted!',
+            text: 'The Purchase is not deleted!',
             icon: 'error',
             customClass: {
               confirmButton: 'btn btn-success'
@@ -531,74 +449,17 @@
       });
     });
 
-    // Edit record
+    // edit record
     $(document).on('click', '.edit-record', function () {
-      var product_id = $(this).data('id'),
-        dtrModal = $('.dtr-bs-modal.show');
-
-      // Hide responsive modal in small screen
-      if (dtrModal.length) {
-        dtrModal.modal('hide');
-      }
-
-      // Change the title of offcanvas
-      $('#offcanvasAddProductLabel').html('Edit Product');
-
-      // Get data
-      $.get(''.concat(baseUrl, 'product/').concat(product_id, '/edit'), function (data) {
-        $('#product_id').val(data.id);
-        $('#add-product-name').val(data.name);
-
-        var sku = data.sku.replace('SKU', ''); // Remove "SKU" from the text
-        $('#add-product-sku').val(sku); // Update SKU
-        $('#add-product-stock').val(data.stock); // Update stock instead of quantity
-
-        var price = data.price.replace('.00', ''); // Remove .00 if present
-        var formattedPrice = formatRupiah(price);
-        $('#add-product-price').val(formattedPrice);
-
-        var cost = data.cost.replace('.00', ''); // Remove .00 if present
-        var formattedCost = formatRupiah(cost);
-        $('#add-product-cost').val(formattedCost);
-
-        // Update brand dropdown
-        $('#add-product-brand').val(data.brand_id).change(); // Set the brand based on the product's data
-
-        // Update unit dropdown
-        $('#add-product-unit').val(data.unit_id).change(); // Set the unit based on the product's data
-
-        // Update status
-        if (data.status !== undefined && (data.status === 1 || data.status === 0)) {
-          $('#add-unit-status').val(data.status).change(); // Set status dropdown value
-        }
-
-        // Display the product image
-        if (data.product_image) {
-          // Check if the product_image is a full URL or a relative path
-          var imageUrl;
-          if (data.product_image.startsWith('http://') || data.product_image.startsWith('https://')) {
-            // If it's a full URL, use it directly
-            imageUrl = data.product_image;
-          } else {
-            // Otherwise, construct the full URL using the base URL and storage path
-            imageUrl = `${baseUrl}storage/${data.product_image}`;
-          }
-
-          // Set the image URL and display it
-          $('#product-image-preview').attr('src', imageUrl).show();
-        } else {
-          // Use a placeholder image if no image is available
-          $('#product-image-preview')
-            .attr('src', 'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis')
-            .show();
-        }
-      });
+      var brand_id = $(this).data('id');
+      var editUrl = baseUrl + 'purchases/' + brand_id + '/edit';
+      window.location.href = editUrl;
     });
 
     // changing the title
     $('.add-new').on('click', function () {
-      $('#product_id').val(''); //reseting input field
-      $('#offcanvasAddProductLabel').html('Add Product');
+      $('#brand_id').val(''); //reseting input field
+      $('#offcanvasAddBrandLabel').html('Add Purchase');
     });
 
     // Filter form control to default size
@@ -609,11 +470,11 @@
     }, 300);
 
     // validating form and updating user's data
-    var addNewProductForm = document.getElementById('addNewProductForm');
+    var addNewBrandForm = document.getElementById('addNewBrandForm');
 
     // Ambil nilai form dan ubah nilai price dan cost sebelum di-serialize
-    $('#addNewProductForm').submit(function (e) {
-      e.preventDefault(); // Cegah form dari submit normal
+    $('#addNewBrandForm').submit(function (e) {
+      // Cegah form dari submit normal
 
       // Ambil nilai input price dan cost
       let price = $('#price').val().replace(/\./g, ''); // Hilangkan titik
@@ -629,37 +490,37 @@
       // Kirim form menggunakan AJAX atau metode yang lain
     });
 
-    // User form validation
-    var fv = FormValidation.formValidation(addNewProductForm, {
+    // user form validation
+    var fv = FormValidation.formValidation(addNewBrandForm, {
       fields: {
-        name: {
+        brand_name: {
           validators: {
             notEmpty: {
-              message: 'Please enter the name'
-            }
-          }
-        },
-        stock: {
-          validators: {
-            notEmpty: {
-              message: 'Please enter the stock quantity'
+              message: 'Please enter the purchase name'
             },
-            integer: {
-              message: 'The stock must be a valid integer'
+            stringLength: {
+              max: 100,
+              message: 'The purchase name must be less than 100 characters'
             }
           }
         },
-        price: {
+        description: {
           validators: {
-            notEmpty: {
-              message: 'Please enter the price'
+            stringLength: {
+              max: 255,
+              message: 'The description must be less than 255 characters'
             }
           }
         },
-        cost: {
+        status: {
           validators: {
             notEmpty: {
-              message: 'Please enter the cost'
+              message: 'Please select the status'
+            },
+            choice: {
+              min: 0,
+              max: 1,
+              message: 'Invalid status. Please select Active or Inactive'
             }
           }
         }
@@ -667,71 +528,58 @@
       plugins: {
         trigger: new FormValidation.plugins.Trigger(),
         bootstrap5: new FormValidation.plugins.Bootstrap5({
+          // Use this for enabling/changing valid/invalid class
           eleValidClass: '',
-          rowSelector: function fieldRow(field, ele) {
+          rowSelector: function rowSelector(field, ele) {
+            // field is the field name & ele is the field element
             return '.mb-3';
           }
         }),
         submitButton: new FormValidation.plugins.SubmitButton(),
+        // Submit the form when all fields are valid
+        // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
         autoFocus: new FormValidation.plugins.AutoFocus()
       }
     }).on('core.form.valid', function () {
-      // Remove dots from price and cost
-      let price = $('#add-product-price').val().replace(/\./g, '');
-      let cost = $('#add-product-cost').val().replace(/\./g, '');
+      // adding or updating user when form successfully validate
 
-      $('#add-product-price').val(price);
-      $('#add-product-cost').val(cost);
+      // Get the value of the brand_name field
+      var brandName = $('#add-purchase-name').val();
 
-      // Prepare FormData
-      var formData = new FormData($('#addNewProductForm')[0]); // Create a new FormData object using the form
+      // Convert purchase name to Title Case (First letter of each word capitalized)
+      var titleCaseBrandName = brandName.toLowerCase().replace(/\b\w/g, function (char) {
+        return char.toUpperCase();
+      });
 
-      // Include the product image in the form data
-      var productImage = $('#product-image')[0].files[0];
-      if (productImage) {
-        formData.append('product_image', productImage);
-      }
+      // Update the value of the brand_name field with the Title Case version
+      $('#add-purchase-name').val(titleCaseBrandName);
 
-      // AJAX request
       $.ajax({
-        data: formData,
-        url: `${baseUrl}product/store`,
+        data: $('#addNewBrandForm').serialize(),
+        url: ''.concat(baseUrl, 'purchases/store'),
         type: 'POST',
-        processData: false, // Important: Don't process the data
-        contentType: false, // Important: Set contentType to false
-        success: function (status) {
-          // Refresh data table and hide offcanvas
+        success: function success(status) {
           dt_user.draw();
           offCanvasForm.offcanvas('hide');
 
-          // Display success notification
+          // sweetalert
           Swal.fire({
             icon: 'success',
-            title: `Successfully ${status}!`,
-            text: `Product ${status} successfully.`,
+            title: 'Successfully '.concat(status, '!'),
+            text: 'Purchase '.concat(status, ' Successfully.'),
             customClass: {
               confirmButton: 'btn btn-success'
             }
           });
-
-          // Reset the form after success
-          $('#addNewProductForm')[0].reset();
-          fv.resetForm(true); // Reset form validation status
-          $('#product-image-preview').attr(
-            'src',
-            'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis'
-          ); // Reset image preview
         },
-        error: function (err) {
+        error: function error(err) {
           offCanvasForm.offcanvas('hide');
-
-          // Display error notification
           Swal.fire({
             title: 'Duplicate Entry!',
-            text: 'Product SKU should be unique.',
+            text: err,
             icon: 'error',
             customClass: {
-              confirmButton: 'btn btn-danger'
+              confirmButton: 'btn btn-success'
             }
           });
         }

@@ -22,7 +22,7 @@ class PurchaseFactory extends Factory
     public function definition()
     {
         $quantity = $this->faker->numberBetween(1, 100); // Quantity of products purchased
-        $costPrice = $this->faker->randomFloat(2, 10, 1000); // Random purchase price
+        $costPrice = $this->faker->numberBetween(10000, 1000000) . '.00';
         $total = $quantity * $costPrice; // Calculate total purchase price
 
         return [

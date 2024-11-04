@@ -116,6 +116,12 @@
       "slug": "customers.index"
     },
     {
+      "url": "purchases",
+      "name": "Transaction Purchase",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "purchases.index"
+    },
+    {
       "url": "app/email",
       "name": "Email",
       "icon": "menu-icon tf-icons ti ti-mail",

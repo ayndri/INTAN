@@ -12,26 +12,26 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class PurchaseFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+  /**
+   * Define the model's default state.
+   *
+   * @return array<string, mixed>
+   */
 
-    protected $model = Purchase::class;
-    public function definition()
-    {
-        $quantity = $this->faker->numberBetween(1, 100); // Quantity of products purchased
-        $costPrice = $this->faker->numberBetween(10000, 1000000) . '.00';
-        $total = $quantity * $costPrice; // Calculate total purchase price
+  protected $model = Purchase::class;
+  public function definition()
+  {
+    $quantity = $this->faker->numberBetween(1, 100); // Quantity of products purchased
+    $costPrice = $this->faker->numberBetween(10000, 1000000) . '.00';
+    $total = $quantity * $costPrice; // Calculate total purchase price
 
-        return [
-            'product_id' => Product::inRandomOrder()->first()->id, // Generate a random product_id
-            'supplier_id' => Supplier::inRandomOrder()->first()->id, // Generate a random supplier_id
-            'quantity' => $quantity,
-            'cost_price' => $costPrice,
-            'total' => $total, // Calculated total
-            'purchase_date' => $this->faker->dateTimeThisYear(), // Random purchase date within this year
-        ];
-    }
+    return [
+      'product_id' => Product::inRandomOrder()->first()->id, // Generate a random product_id
+      'supplier_id' => Supplier::inRandomOrder()->first()->id, // Generate a random supplier_id
+      'quantity' => $quantity,
+      'cost_price' => $costPrice,
+      'total' => $total, // Calculated total
+      'purchase_date' => $this->faker->dateTimeThisYear(), // Random purchase date within this year
+    ];
+  }
 }

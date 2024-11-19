@@ -23,12 +23,7 @@
         }
       ]
     },
-    {
-      "url": "product",
-      "name": "Product",
-      "icon": "menu-icon tf-icons ti ti-package",
-      "slug": "product.index"
-    },
+
     {
       "name": "Financial Accounting",
       "icon": "menu-icon tf-icons ti ti-file-dollar",
@@ -95,7 +90,31 @@
       ]
     },
     {
-      "menuHeader": "Master Data"
+      "menuHeader": "Inventory"
+    },
+    {
+      "url": "product",
+      "name": "Product",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "product.index"
+    },
+    {
+      "url": "product/store",
+      "name": "Create Product",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "product.create"
+    },
+    {
+      "url": "product/low-stock",
+      "name": "Low Stock",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "product.lowStock"
+    },
+    {
+      "url": "categories",
+      "name": "Categories",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "categories.index"
     },
     {
       "url": "brands",
@@ -110,16 +129,34 @@
       "slug": "units.index"
     },
     {
+      "menuHeader": "People"
+    },
+    {
+      "url": "suppliers",
+      "name": "Suppliers",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "suppliers.index"
+    },
+    {
       "url": "customers",
       "name": "Customers",
       "icon": "menu-icon tf-icons ti ti-package",
       "slug": "customers.index"
     },
     {
+      "menuHeader": "Transaction"
+    },
+    {
       "url": "purchases",
-      "name": "Transaction Purchase",
+      "name": "Purchase",
       "icon": "menu-icon tf-icons ti ti-package",
       "slug": "purchases.index"
+    },
+    {
+      "url": "sales",
+      "name": "Sales",
+      "icon": "menu-icon tf-icons ti ti-package",
+      "slug": "sales.index"
     },
     {
       "url": "app/email",

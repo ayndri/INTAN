@@ -7,78 +7,71 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    // Nama tabel yang terkait dengan model ini
-    protected $table = 'products';
+  /**
+   * The table associated with the model.
+   *
+   * @var string
+   */
+  protected $table = 'products';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name',
-        'sku',
-        'price',
-        'cost',
-        'stock',
-        'unit_id',
-        'brand_id',
-        'status',
-        'product_image',
-    ];
+  /**
+   * The attributes that are mass assignable.
+   *
+   * @var array
+   */
+  protected $fillable = [
+    'name',
+    'sku',
+    'category_id',
+    'brand_id',
+    'unit_id',
+    'item_code',
+    'description',
+    'product_type',
+    'sell_price',
+    'quantity',
+    'quantity_alert',
+  ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'price' => 'decimal:2',
-        'cost' => 'decimal:2',
-        'status' => 'boolean',
-    ];
+  /**
+   * Get the category associated with the product.
+   */
+  public function category()
+  {
+    return $this->belongsTo(Category::class, 'category_id');
+  }
 
-    /**
-     * Relationships to Inventory Movements.
-     */
-    public function inventoryMovements()
-    {
-        return $this->hasMany(InventoryMovement::class);
-    }
+  /**
+   * Get the brand associated with the product.
+   */
+  public function brand()
+  {
+    return $this->belongsTo(Brand::class, 'brand_id');
+  }
 
-    /**
-     * Relationships to Sales.
-     */
-    public function sales()
-    {
-        return $this->hasMany(Sale::class);
-    }
+  /**
+   * Get the unit associated with the product.
+   */
+  public function unit()
+  {
+    return $this->belongsTo(Unit::class, 'unit_id');
+  }
 
-    /**
-     * Relationships to Purchases.
-     */
-    public function purchases()
-    {
-        return $this->hasMany(Purchase::class);
-    }
+  /**
+   * Get the images associated with the product.
+   */
+  public function images()
+  {
+    return $this->hasMany(ProductImage::class, 'product_id');
+  }
 
-    /**
-     * Relationship to Unit.
-     * Each product belongs to a single unit.
-     */
-    public function unit()
-    {
-        return $this->belongsTo(Unit::class, 'unit_id');
-    }
-
-    /**
-     * Relationship to Brand.
-     * Each product belongs to a single brand.
-     */
-    public function brand()
-    {
-        return $this->belongsTo(Brand::class, 'brand_id');
-    }
+  /**
+   * Get the variant products associated with the product.
+   */
+  public function variantProducts()
+  {
+    return $this->hasMany(VariantProduct::class, 'product_id');
+  }
 }

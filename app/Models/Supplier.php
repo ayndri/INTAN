@@ -7,27 +7,33 @@ use Illuminate\Database\Eloquent\Model;
 
 class Supplier extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $table = 'suppliers';
+  protected $table = 'suppliers';
 
-    protected $fillable = [
-        'name',
-        'email',
-        'phone',
-        'address',
-        'status',
-    ];
+  protected $fillable = [
+    'name',
+    'email',
+    'phone_code',
+    'phone',
+    'address',
+    'city_id',
+    'country_id',
+    'avatar',
+    'description',
+    'code'
+  ];
 
-    protected $casts = [
-        'status' => 'boolean', // Status akan dikonversi menjadi boolean (true/false)
-    ];
+  /**
+   * Relationship to Purchase model.
+   */
+  public function purchases()
+  {
+    return $this->hasMany(Purchase::class);
+  }
 
-    /**
-     * Relationship to Purchase model.
-     */
-    public function purchases()
-    {
-        return $this->hasMany(Purchase::class);
-    }
+  public function country()
+  {
+    return $this->belongsTo(Country::class, 'country_id');
+  }
 }

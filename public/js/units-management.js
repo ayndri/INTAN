@@ -96,10 +96,16 @@
             data: 'unit_name' // Unit Name
           },
           {
-            data: 'status' // SKU (replacing the 'description' column)
+            data: 'short_name'
           },
           {
-            data: 'product_count' // Unit Stock (replacing 'quantity')
+            data: 'product_count'
+          },
+          {
+            data: 'created_at'
+          },
+          {
+            data: 'status'
           },
           {
             data: 'action' // Action buttons (edit/delete)
@@ -135,22 +141,41 @@
             }
           },
           {
-            // sku
+            // User full name
             targets: 3,
+            responsivePriority: 4,
+            render: function render(data, type, full, meta) {
+              var $short_name = full['short_name'];
+              return '<span class="user-email">' + $short_name + '</span>';
+            }
+          },
+          {
+            // User full name
+            targets: 4,
+            responsivePriority: 4,
+            render: function render(data, type, full, meta) {
+              var $product_count = full['product_count'];
+              return '<span class="user-email">' + $product_count + '</span>';
+            }
+          },
+          {
+            // User full name
+            targets: 5,
+            responsivePriority: 4,
+            render: function render(data, type, full, meta) {
+              var $created_at = full['created_at'];
+              return '<span class="user-email">' + $created_at + '</span>';
+            }
+          },
+          {
+            // sku
+            targets: 6,
             responsivePriority: 4,
             render: function render(data, type, full, meta) {
               var $status = full['status'];
               return $status == 'Active'
                 ? '<span class="badge bg-label-success">Active</span>'
                 : '<span class="badge bg-label-secondary">Inactive</span>';
-            }
-          },
-          {
-            // product_count
-            targets: 4,
-            render: function render(data, type, full, meta) {
-              var $product_count = full['product_count'];
-              return '<span class="user-email text-center">' + $product_count + ' Products</span>';
             }
           },
           {
@@ -469,10 +494,17 @@
       $.get(''.concat(baseUrl, 'units/').concat(unit_id, '/edit'), function (data) {
         $('#unit_id').val(data.id);
         $('#add-unit-name').val(data.unit_name); // Set unit name field
-        $('#add-unit-description').val(data.description); // Set description field
+        $('#add-unit-short').val(data.short_name); // Set description field
         // Ensure that status is set properly (1 or 0)
-        if (data.status !== undefined && (data.status === 1 || data.status === 0)) {
-          $('#add-unit-status').val(data.status); // Set status dropdown value
+
+        if (data.status !== undefined && (data.status === true || data.status === false)) {
+          $('#add-unit-status').prop('checked', false); // Uncheck first to reset
+
+          if (data.status === true) {
+            $('#add-unit-status').prop('checked', true); // Set checked if active (1)
+          } else if (data.status === 0) {
+            $('#add-unit-status').prop('checked', false); // Set unchecked if inactive (0)
+          }
         }
       });
     });
@@ -481,6 +513,8 @@
     $('.add-new').on('click', function () {
       $('#unit_id').val(''); //reseting input field
       $('#offcanvasAddUnitLabel').html('Add Unit');
+
+      $('#addNewUnitForm')[0].reset();
     });
 
     // Filter form control to default size
@@ -530,18 +564,6 @@
             stringLength: {
               max: 255,
               message: 'The description must be less than 255 characters'
-            }
-          }
-        },
-        status: {
-          validators: {
-            notEmpty: {
-              message: 'Please select the status'
-            },
-            choice: {
-              min: 0,
-              max: 1,
-              message: 'Invalid status. Please select Active or Inactive'
             }
           }
         }
@@ -597,7 +619,7 @@
           offCanvasForm.offcanvas('hide');
           Swal.fire({
             title: 'Duplicate Entry!',
-            text: err,
+            text: err.responseText || 'An error occurred.',
             icon: 'error',
             customClass: {
               confirmButton: 'btn btn-success'

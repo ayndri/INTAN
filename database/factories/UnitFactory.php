@@ -10,21 +10,12 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class UnitFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+  /**
+   * Define the model's default state.
+   *
+   * @return array<string, mixed>
+   */
 
-    protected $model = Unit::class;
-    public function definition()
-    {
-        $unitNames = ['Pcs', 'Box', 'Kg', 'Liter', 'Dozen', 'Pack', 'Bottle', 'Carton'];
-
-        return [
-            'unit_name' => $this->faker->randomElement($unitNames),
-            'description' => $this->faker->sentence(6, true),
-            'status' => true,
-        ];
-    }
+  protected $model = Unit::class;
+  public function definition() {}
 }

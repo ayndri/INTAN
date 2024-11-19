@@ -96,10 +96,13 @@
             data: 'brand_name' // Brand Name
           },
           {
-            data: 'status' // SKU (replacing the 'description' column)
+            data: 'image'
           },
           {
-            data: 'product_count' // Brand Stock (replacing 'quantity')
+            data: 'created_on'
+          },
+          {
+            data: 'status'
           },
           {
             data: 'action' // Action buttons (edit/delete)
@@ -126,7 +129,6 @@
             }
           },
           {
-            // User full name
             targets: 2,
             responsivePriority: 4,
             render: function render(data, type, full, meta) {
@@ -135,22 +137,40 @@
             }
           },
           {
-            // sku
             targets: 3,
+            responsivePriority: 4,
+            render: function render(data, type, full, meta) {
+              var $image = full['image'];
+
+              // Check if the image URL exists and is valid
+              if ($image) {
+                return (
+                  '<img src="' +
+                  $image +
+                  '" alt="Brand Image" class="" style="width: 50px; height: 50px; object-fit: cover;">'
+                );
+              } else {
+                // Return a default image if the URL is missing or invalid
+                return '<img src="/path/to/default/image.jpg" alt="Default Image" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">';
+              }
+            }
+          },
+          {
+            targets: 4,
+            responsivePriority: 4,
+            render: function render(data, type, full, meta) {
+              var $created_at = full['created_at'];
+              return '<span class="user-email">' + $created_at + '</span>';
+            }
+          },
+          {
+            targets: 5,
             responsivePriority: 4,
             render: function render(data, type, full, meta) {
               var $status = full['status'];
               return $status == 'Active'
                 ? '<span class="badge bg-label-success">Active</span>'
                 : '<span class="badge bg-label-secondary">Inactive</span>';
-            }
-          },
-          {
-            // product_count
-            targets: 4,
-            render: function render(data, type, full, meta) {
-              var $product_count = full['product_count'];
-              return '<span class="user-email text-center">' + $product_count + ' Products</span>';
             }
           },
           {
@@ -469,10 +489,37 @@
       $.get(''.concat(baseUrl, 'brands/').concat(brand_id, '/edit'), function (data) {
         $('#brand_id').val(data.id);
         $('#add-brand-name').val(data.brand_name); // Set brand name field
-        $('#add-brand-description').val(data.description); // Set description field
         // Ensure that status is set properly (1 or 0)
-        if (data.status !== undefined && (data.status === 1 || data.status === 0)) {
-          $('#add-brand-status').val(data.status); // Set status dropdown value
+
+        if (data.status !== undefined && (data.status === true || data.status === false)) {
+          $('#add-brand-status').prop('checked', false); // Uncheck first to reset
+
+          if (data.status === true) {
+            $('#add-brand-status').prop('checked', true); // Set checked if active (1)
+          } else if (data.status === 0) {
+            $('#add-brand-status').prop('checked', false); // Set unchecked if inactive (0)
+          }
+        }
+
+        // Display the product image
+        if (data.image) {
+          // Check if the image is a full URL or a relative path
+          var imageUrl;
+          if (data.image.startsWith('http://') || data.image.startsWith('https://')) {
+            // If it's a full URL, use it directly
+            imageUrl = data.image;
+          } else {
+            // Otherwise, construct the full URL using the base URL and storage path
+            imageUrl = `${baseUrl}storage/${data.image}`;
+          }
+
+          // Set the background image using the constructed URL
+          $('#image-container').css('background-image', `url(${imageUrl})`).show();
+        } else {
+          // Use a placeholder image if no image is available
+          $('#image-container')
+            .css('background-image', 'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis')
+            .show();
         }
       });
     });
@@ -481,6 +528,13 @@
     $('.add-new').on('click', function () {
       $('#brand_id').val(''); //reseting input field
       $('#offcanvasAddBrandLabel').html('Add Brand');
+
+      $('#addNewBrandForm')[0].reset();
+
+      // Reset the image preview
+      const imageContainer = document.getElementById('image-container');
+      imageContainer.style.backgroundImage = ''; // Clear the background image
+      document.getElementById('add-image-text').style.display = 'block'; // Show the placeholder text
     });
 
     // Filter form control to default size
@@ -524,26 +578,6 @@
               message: 'The brand name must be less than 100 characters'
             }
           }
-        },
-        description: {
-          validators: {
-            stringLength: {
-              max: 255,
-              message: 'The description must be less than 255 characters'
-            }
-          }
-        },
-        status: {
-          validators: {
-            notEmpty: {
-              message: 'Please select the status'
-            },
-            choice: {
-              min: 0,
-              max: 1,
-              message: 'Invalid status. Please select Active or Inactive'
-            }
-          }
         }
       },
       plugins: {
@@ -562,45 +596,58 @@
         autoFocus: new FormValidation.plugins.AutoFocus()
       }
     }).on('core.form.valid', function () {
-      // adding or updating user when form successfully validate
-
       // Get the value of the brand_name field
       var brandName = $('#add-brand-name').val();
+      var brandStatus = $('#add-brand-status').val(); // Check if the checkbox is checked
 
       // Convert brand name to Title Case (First letter of each word capitalized)
       var titleCaseBrandName = brandName.toLowerCase().replace(/\b\w/g, function (char) {
         return char.toUpperCase();
       });
 
-      // Update the value of the brand_name field with the Title Case version
-      $('#add-brand-name').val(titleCaseBrandName);
+      $('#add-brand-name').val(titleCaseBrandName); // Update the brand name with Title Case
 
+      // Create a new FormData object using the form
+      var formData = new FormData($('#addNewBrandForm')[0]);
+
+      // Include the brand image in the form data if a file is selected
+      var brandImage = $('#brand-image')[0].files[0];
+      if (brandImage) {
+        formData.append('brand_image', brandImage);
+      }
+
+      // Make the AJAX request to submit the form data
       $.ajax({
-        data: $('#addNewBrandForm').serialize(),
-        url: ''.concat(baseUrl, 'brands/store'),
+        data: formData,
+        url: ''.concat(baseUrl, 'brands/store'), // Your server URL
         type: 'POST',
-        success: function success(status) {
+        contentType: false, // Don't set the content type, let FormData handle it
+        processData: false, // Don't process the data, let FormData handle it
+        success: function (status) {
+          // Refresh the data table after successful submission
           dt_user.draw();
           offCanvasForm.offcanvas('hide');
 
-          // sweetalert
+          // Show success message with SweetAlert
           Swal.fire({
             icon: 'success',
             title: 'Successfully '.concat(status, '!'),
-            text: 'Brand '.concat(status, ' Successfully.'),
+            text: 'Brand '.concat(status, ' successfully.'),
             customClass: {
               confirmButton: 'btn btn-success'
             }
           });
         },
-        error: function error(err) {
+        error: function (err) {
           offCanvasForm.offcanvas('hide');
+
+          // Show error message with SweetAlert
           Swal.fire({
             title: 'Duplicate Entry!',
-            text: err,
+            text: err.responseText || 'An error occurred.',
             icon: 'error',
             customClass: {
-              confirmButton: 'btn btn-success'
+              confirmButton: 'btn btn-danger'
             }
           });
         }

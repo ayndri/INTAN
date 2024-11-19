@@ -61,7 +61,7 @@
     if (select2.length) {
       var $this = select2;
       $this.wrap('<div class="position-relative"></div>').select2({
-        placeholder: 'Select Country',
+        placeholder: 'Select Suuplier',
         dropdownParent: $this.parent()
       });
     }
@@ -90,19 +90,19 @@
             data: 'id' // Purchase ID
           },
           {
-            data: 'product_name' // Purchase Name
+            data: 'supplier_name' // SKU (replacing the 'description' column)
           },
           {
-            data: 'supplier_name' // SKU (replacing the 'description' column)
+            data: 'reference' // SKU (replacing the 'description' column)
           },
           {
             data: 'purchase_date' // Purchase Stock (replacing 'quantity')
           },
           {
-            data: 'cost_price'
+            data: 'status'
           },
           {
-            data: 'total_price'
+            data: 'total'
           },
           {
             data: 'action' // Action buttons (edit/delete)
@@ -133,16 +133,16 @@
             targets: 2,
             responsivePriority: 4,
             render: function render(data, type, full, meta) {
-              var $product_name = full['product_name'];
-              return '<span class="product-name">' + $product_name + '</span>';
+              var $supplier_name = full['supplier_name'];
+              return '<span class="product-name">' + $supplier_name + '</span>';
             }
           },
           {
             // supplier name
             targets: 3,
             render: function render(data, type, full, meta) {
-              var $supplier_name = full['supplier_name'];
-              return '<span class="user-email text-center">' + $supplier_name + '</span>';
+              var $reference = full['reference'];
+              return '<span class="user-email text-center">' + $reference + '</span>';
             }
           },
           {
@@ -154,19 +154,21 @@
             }
           },
           {
-            // cost price
             targets: 5,
+            responsivePriority: 4,
             render: function render(data, type, full, meta) {
-              var $cost_price = full['cost_price'];
-              return '<span class="user-email text-center">' + $cost_price + '</span>';
+              var $status = full['status'];
+              return $status == 'Received'
+                ? '<span class="badge bg-label-success">Received</span>'
+                : '<span class="badge bg-label-secondary">Pending</span>';
             }
           },
           {
             // total
             targets: 6,
             render: function render(data, type, full, meta) {
-              var $total_price = full['total_price'];
-              return '<span class="user-email text-center">' + $total_price + '</span>';
+              var $total = full['total'];
+              return '<span class="user-email text-center">' + $total + '</span>';
             }
           },
           {
@@ -528,58 +530,58 @@
       plugins: {
         trigger: new FormValidation.plugins.Trigger(),
         bootstrap5: new FormValidation.plugins.Bootstrap5({
-          // Use this for enabling/changing valid/invalid class
+          // Customize valid/invalid class
           eleValidClass: '',
-          rowSelector: function rowSelector(field, ele) {
-            // field is the field name & ele is the field element
+          rowSelector: function (field, ele) {
             return '.mb-3';
           }
         }),
         submitButton: new FormValidation.plugins.SubmitButton(),
-        // Submit the form when all fields are valid
-        // defaultSubmit: new FormValidation.plugins.DefaultSubmit(),
         autoFocus: new FormValidation.plugins.AutoFocus()
       }
     }).on('core.form.valid', function () {
-      // adding or updating user when form successfully validate
-
-      // Get the value of the brand_name field
+      // Mengambil nilai purchase name
       var brandName = $('#add-purchase-name').val();
 
-      // Convert purchase name to Title Case (First letter of each word capitalized)
+      // Mengonversi nama ke Title Case
       var titleCaseBrandName = brandName.toLowerCase().replace(/\b\w/g, function (char) {
         return char.toUpperCase();
       });
 
-      // Update the value of the brand_name field with the Title Case version
+      // Mengupdate input dengan Title Case
       $('#add-purchase-name').val(titleCaseBrandName);
 
+      // AJAX untuk menyimpan data
       $.ajax({
         data: $('#addNewBrandForm').serialize(),
-        url: ''.concat(baseUrl, 'purchases/store'),
+        url: `${baseUrl}purchases/store`, // Menggunakan template literal
         type: 'POST',
-        success: function success(status) {
-          dt_user.draw();
-          offCanvasForm.offcanvas('hide');
+        success: function (response) {
+          dt_user.draw(); // Refresh DataTable
+          offCanvasForm.offcanvas('hide'); // Menutup form
 
-          // sweetalert
+          // SweetAlert sukses
           Swal.fire({
             icon: 'success',
-            title: 'Successfully '.concat(status, '!'),
-            text: 'Purchase '.concat(status, ' Successfully.'),
+            title: `Successfully ${response.status}!`,
+            text: `Purchase ${response.status} successfully.`,
             customClass: {
               confirmButton: 'btn btn-success'
             }
           });
         },
-        error: function error(err) {
-          offCanvasForm.offcanvas('hide');
+        error: function (xhr, status, error) {
+          offCanvasForm.offcanvas('hide'); // Menutup form jika gagal
+          var errorMessage =
+            xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'An error occurred';
+
+          // SweetAlert untuk error
           Swal.fire({
-            title: 'Duplicate Entry!',
-            text: err,
+            title: 'Error!',
+            text: errorMessage,
             icon: 'error',
             customClass: {
-              confirmButton: 'btn btn-success'
+              confirmButton: 'btn btn-danger'
             }
           });
         }

@@ -19,31 +19,6 @@
     );
   }
 
-  $(document).on('input', '#add-product-name', function () {
-    // Get the current value of the product_name input field
-    var productName = $(this).val();
-
-    // Convert product name to Title Case (First letter of each word capitalized)
-    var titleCaseUnitName = productName.toLowerCase().replace(/\b\w/g, function (char) {
-      return char.toUpperCase();
-    });
-
-    // Update the input field value with the Title Case version
-    $(this).val(titleCaseUnitName);
-  });
-
-  // Function to show the preview of the selected image
-  $(document).on('change', '#product-image', function (event) {
-    var reader = new FileReader();
-
-    reader.onload = function (e) {
-      $('#product-image-preview').attr('src', e.target.result).show(); // Set the image preview src attribute
-    };
-
-    // Read the selected file as Data URL
-    reader.readAsDataURL(event.target.files[0]);
-  });
-
   // Function to format numbers as Rupiah
   function formatRupiah(value) {
     // Remove non-numeric characters
@@ -63,12 +38,6 @@
 
   // Event listener for Price input
   document.getElementById('add-product-price').addEventListener('input', function (e) {
-    const inputVal = e.target.value;
-    e.target.value = formatRupiah(inputVal);
-  });
-
-  // Event listener for Cost input
-  document.getElementById('add-product-cost').addEventListener('input', function (e) {
     const inputVal = e.target.value;
     e.target.value = formatRupiah(inputVal);
   });
@@ -115,6 +84,7 @@
     });
 
     // Users datatable
+
     if (dt_user_table.length) {
       var dt_user = dt_user_table.DataTable({
         processing: true,
@@ -137,13 +107,19 @@
             data: 'sku' // SKU (replacing the 'description' column)
           },
           {
-            data: 'stock' // Product Stock (replacing 'quantity')
+            data: 'category_id' // Product Stock (replacing 'quantity')
           },
           {
-            data: 'price' // Product Price (you can add this column for price display)
+            data: 'brand_id' // Product Price (you can add this column for price display)
           },
           {
-            data: 'cost' // Product Cost (if you want to display this as well)
+            data: 'sell_price' // Product Cost (if you want to display this as well)
+          },
+          {
+            data: 'unit_id' // Product Cost (if you want to display this as well)
+          },
+          {
+            data: 'quantity' // Product Cost (if you want to display this as well)
           },
           {
             data: 'action' // Action buttons (edit/delete)
@@ -214,16 +190,24 @@
             }
           },
           {
-            // stock
+            // category
             targets: 4,
             render: function render(data, type, full, meta) {
-              var $stock = full['stock'];
-              return '<span class="user-email">' + $stock + '</span>';
+              var $category = full['category'];
+              return '<span class="user-email">' + $category + '</span>';
+            }
+          },
+          {
+            // brand
+            targets: 5,
+            render: function render(data, type, full, meta) {
+              var $brand = full['brand'];
+              return '<span class="user-email">' + $brand + '</span>';
             }
           },
           {
             // price
-            targets: 5,
+            targets: 6,
             render: function render(data, type, full, meta) {
               var $price = full['price'];
 
@@ -238,17 +222,19 @@
             }
           },
           {
-            // cost
-            targets: 6,
+            // unit
+            targets: 7,
             render: function render(data, type, full, meta) {
-              var $cost = full['cost'];
-              var formattedPrice = new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0, // Ensure no decimal digits are displayed
-                maximumFractionDigits: 0 // Ensure no decimal digits are displayed
-              }).format($cost);
-              return '<span class="user-email">' + formattedPrice + '</span>';
+              var $unit = full['unit'];
+              return '<span class="user-email">' + $unit + '</span>';
+            }
+          },
+          {
+            // quantity
+            targets: 8,
+            render: function render(data, type, full, meta) {
+              var $quantity = full['quantity'];
+              return '<span class="user-email">' + $quantity + '</span>';
             }
           },
           {
@@ -262,7 +248,10 @@
                 '<div class="d-inline-block text-nowrap">' +
                 '<button class="btn btn-sm btn-icon edit-record" data-id="'.concat(
                   full['id'],
-                  '" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddProduct"><i class="ti ti-edit"></i></button>'
+                  '" data-bs-toggle="offcanvas" data-bs-target="" onclick="window.location.href=\'/product/'.concat(
+                    full['id'],
+                    '/edit\'"><i class="ti ti-edit"></i></button>'
+                  )
                 ) +
                 '<button class="btn btn-sm btn-icon delete-record" data-id="'.concat(
                   full['id'],
@@ -429,8 +418,7 @@
             text: '<i class="ti ti-plus me-0 me-sm-1"></i><span class="d-none d-sm-inline-block">Add New Product</span>',
             className: 'add-new btn btn-primary',
             attr: {
-              'data-bs-toggle': 'offcanvas',
-              'data-bs-target': '#offcanvasAddProduct'
+              onclick: "window.location.href='/product/store'" // Panggil rute store untuk insert
             }
           }
         ],
@@ -607,136 +595,6 @@
       $('.dataTables_filter .form-control').removeClass('form-control-sm');
       $('.dataTables_length .form-select').removeClass('form-select-sm');
     }, 300);
-
-    // validating form and updating user's data
-    var addNewProductForm = document.getElementById('addNewProductForm');
-
-    // Ambil nilai form dan ubah nilai price dan cost sebelum di-serialize
-    $('#addNewProductForm').submit(function (e) {
-      e.preventDefault(); // Cegah form dari submit normal
-
-      // Ambil nilai input price dan cost
-      let price = $('#price').val().replace(/\./g, ''); // Hilangkan titik
-      let cost = $('#cost').val().replace(/\./g, ''); // Hilangkan titik
-
-      // Set nilai yang telah diubah kembali ke input
-      $('#price').val(price);
-      $('#cost').val(cost);
-
-      // Serialize form
-      let formData = $(this).serialize();
-
-      // Kirim form menggunakan AJAX atau metode yang lain
-    });
-
-    // User form validation
-    var fv = FormValidation.formValidation(addNewProductForm, {
-      fields: {
-        name: {
-          validators: {
-            notEmpty: {
-              message: 'Please enter the name'
-            }
-          }
-        },
-        stock: {
-          validators: {
-            notEmpty: {
-              message: 'Please enter the stock quantity'
-            },
-            integer: {
-              message: 'The stock must be a valid integer'
-            }
-          }
-        },
-        price: {
-          validators: {
-            notEmpty: {
-              message: 'Please enter the price'
-            }
-          }
-        },
-        cost: {
-          validators: {
-            notEmpty: {
-              message: 'Please enter the cost'
-            }
-          }
-        }
-      },
-      plugins: {
-        trigger: new FormValidation.plugins.Trigger(),
-        bootstrap5: new FormValidation.plugins.Bootstrap5({
-          eleValidClass: '',
-          rowSelector: function fieldRow(field, ele) {
-            return '.mb-3';
-          }
-        }),
-        submitButton: new FormValidation.plugins.SubmitButton(),
-        autoFocus: new FormValidation.plugins.AutoFocus()
-      }
-    }).on('core.form.valid', function () {
-      // Remove dots from price and cost
-      let price = $('#add-product-price').val().replace(/\./g, '');
-      let cost = $('#add-product-cost').val().replace(/\./g, '');
-
-      $('#add-product-price').val(price);
-      $('#add-product-cost').val(cost);
-
-      // Prepare FormData
-      var formData = new FormData($('#addNewProductForm')[0]); // Create a new FormData object using the form
-
-      // Include the product image in the form data
-      var productImage = $('#product-image')[0].files[0];
-      if (productImage) {
-        formData.append('product_image', productImage);
-      }
-
-      // AJAX request
-      $.ajax({
-        data: formData,
-        url: `${baseUrl}product/store`,
-        type: 'POST',
-        processData: false, // Important: Don't process the data
-        contentType: false, // Important: Set contentType to false
-        success: function (status) {
-          // Refresh data table and hide offcanvas
-          dt_user.draw();
-          offCanvasForm.offcanvas('hide');
-
-          // Display success notification
-          Swal.fire({
-            icon: 'success',
-            title: `Successfully ${status}!`,
-            text: `Product ${status} successfully.`,
-            customClass: {
-              confirmButton: 'btn btn-success'
-            }
-          });
-
-          // Reset the form after success
-          $('#addNewProductForm')[0].reset();
-          fv.resetForm(true); // Reset form validation status
-          $('#product-image-preview').attr(
-            'src',
-            'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis'
-          ); // Reset image preview
-        },
-        error: function (err) {
-          offCanvasForm.offcanvas('hide');
-
-          // Display error notification
-          Swal.fire({
-            title: 'Duplicate Entry!',
-            text: 'Product SKU should be unique.',
-            icon: 'error',
-            customClass: {
-              confirmButton: 'btn btn-danger'
-            }
-          });
-        }
-      });
-    });
 
     // clearing form data when offcanvas hidden
     offCanvasForm.on('hidden.bs.offcanvas', function () {

@@ -6,6 +6,7 @@ use App\Models\AccountingEntry;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\PurchaseDetail;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -23,11 +24,11 @@ class PurchasesController extends Controller
     // Define the columns to map the request's order to the database fields
     $columns = [
       1 => 'purchases.id',
-      2 => 'products.name', // Correct the field name to 'name' from 'products' table
-      3 => 'suppliers.name', // Update supplier_name to name from 'suppliers' table
-      4 => 'purchases.purchase_date',
-      5 => 'purchases.cost_price',
-      6 => 'purchases.total',
+      2 => 'suppliers.name', // Supplier Name
+      3 => 'purchases.reference', // Reference
+      4 => 'purchases.purchase_date', // Purchase Date
+      5 => 'purchases.status', // Status
+      6 => 'purchases.total', // Total
     ];
 
     $search = $request->input('search.value'); // Get search value
@@ -37,12 +38,18 @@ class PurchasesController extends Controller
     // Get pagination, order, and search parameters
     $limit = $request->input('length');
     $start = $request->input('start');
-    $order = $columns[$request->input('order.0.column')];
-    $dir = $request->input('order.0.dir');
+    $order = $columns[$request->input('order.0.column')] ?? 'purchases.id';
+    $dir = $request->input('order.0.dir') ?? 'asc';
 
-    // Query to join purchases with products and suppliers
-    $purchasesQuery = \App\Models\Purchase::select('purchases.id', 'products.name as product_name', 'suppliers.name as supplier_name', 'purchases.purchase_date', 'purchases.cost_price', 'purchases.total')
-      ->join('products', 'purchases.product_id', '=', 'products.id')
+    // Query to join purchases with suppliers and get the purchase details
+    $purchasesQuery = \App\Models\Purchase::select(
+      'purchases.id',
+      'suppliers.name as supplier_name',
+      'purchases.reference',
+      'purchases.purchase_date',
+      'purchases.status',
+      'purchases.total'
+    )
       ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
       ->offset($start)
       ->limit($limit)
@@ -52,18 +59,24 @@ class PurchasesController extends Controller
     if (!empty($search)) {
       $purchasesQuery->where(function ($query) use ($search) {
         $query->where('purchases.id', 'LIKE', "%{$search}%")
-          ->orWhere('products.name', 'LIKE', "%{$search}%") // Corrected field name for product search
-          ->orWhere('suppliers.name', 'LIKE', "%{$search}%"); // Use 'name' for supplier search
+          ->orWhere('suppliers.name', 'LIKE', "%{$search}%")
+          ->orWhere('purchases.reference', 'LIKE', "%{$search}%")
+          ->orWhere('purchases.purchase_date', 'LIKE', "%{$search}%")
+          ->orWhere('purchases.status', 'LIKE', "%{$search}%")
+          ->orWhere('purchases.total', 'LIKE', "%{$search}%");
       });
 
       // Count filtered results
-      $totalFiltered = \App\Models\Purchase::join('products', 'purchases.product_id', '=', 'products.id')
-        ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
+      $totalFiltered = \App\Models\Purchase::join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
         ->where(function ($query) use ($search) {
           $query->where('purchases.id', 'LIKE', "%{$search}%")
-            ->orWhere('products.name', 'LIKE', "%{$search}%") // Corrected field name for product search
-            ->orWhere('suppliers.name', 'LIKE', "%{$search}%"); // Use 'name' for supplier search
+            ->orWhere('suppliers.name', 'LIKE', "%{$search}%")
+            ->orWhere('purchases.reference', 'LIKE', "%{$search}%")
+            ->orWhere('purchases.purchase_date', 'LIKE', "%{$search}%")
+            ->orWhere('purchases.status', 'LIKE', "%{$search}%")
+            ->orWhere('purchases.total', 'LIKE', "%{$search}%");
         })
+        ->get()
         ->count();
     }
 
@@ -76,11 +89,12 @@ class PurchasesController extends Controller
       foreach ($purchases as $purchase) {
         $nestedData['id'] = $purchase->id;
         $nestedData['fake_id'] = ++$ids;
-        $nestedData['product_name'] = $purchase->product_name; // 'product_name' will now reference the correct column alias
-        $nestedData['supplier_name'] = $purchase->supplier_name; // 'supplier_name' references the 'name' field from 'suppliers' table
-        $nestedData['purchase_date'] = Carbon::parse($purchase->purchase_date)->format('d M Y, h:i A'); // Format the purchase_date
-        $nestedData['cost_price'] = 'Rp ' . number_format($purchase->cost_price, 0, ',', '.'); // Format as Rupiah
-        $nestedData['total_price'] = 'Rp ' . number_format($purchase->total, 0, ',', '.'); // Format as Rupiah
+        $nestedData['supplier_name'] = $purchase->supplier_name;
+        $nestedData['reference'] = $purchase->reference;
+        $nestedData['purchase_date'] = \Carbon\Carbon::parse($purchase->purchase_date)->format('d M Y, h:i A');
+        $nestedData['status'] = $purchase->status;
+        $nestedData['total'] = 'Rp ' . number_format($purchase->total, 0, ',', '.'); // Format as Rupiah
+        $nestedData['actions'] = '<button class="btn btn-info">Edit</button> <button class="btn btn-danger">Delete</button>'; // Placeholder for actions
         $data[] = $nestedData;
       }
     }
@@ -91,7 +105,7 @@ class PurchasesController extends Controller
       'recordsTotal' => intval($totalData),
       'recordsFiltered' => intval($totalFiltered),
       'data' => $data,
-      'search' => $search
+      'search' => $search,
     ]);
   }
 
@@ -133,55 +147,72 @@ class PurchasesController extends Controller
 
   public function store(Request $request)
   {
-    DB::beginTransaction();
-    // Validate the input
+    // Validate input
     $request->validate([
       'supplier_id' => 'required|exists:suppliers,id',
-      'product_id' => 'required|exists:products,id',
-      'qty' => 'required|integer|min:1',
-      'tanggalBeli' => 'required|date',
+      'reference' => 'required|unique:purchases,reference',
+      'purchase_date' => 'required|date',
+      'order_tax' => 'nullable|numeric|min:0',
+      'discount' => 'nullable|numeric|min:0',
+      'shipping' => 'nullable|numeric|min:0',
+      'status' => 'required|in:Received,Pending',
+      'products' => 'required|array|min:1', // Ensure at least one product is added
+      'products.*.product_id' => 'required|exists:products,id',
+      'products.*.quantity' => 'required|integer|min:1',
+      'products.*.unit_cost' => 'required|numeric|min:0',
     ]);
 
-    // Calculate total price (assuming price is being fetched and passed)
-    $product = Product::find($request->product_id);
-    $total = $product->cost * $request->qty; // Assuming 'cost' is the cost price
+    DB::beginTransaction();
 
-    // Create a purchase record
-    $purchase = Purchase::create([
-      'product_id' => $request->product_id,
-      'supplier_id' => $request->supplier_id,
-      'quantity' => $request->qty,
-      'cost_price' => $product->cost,
-      'total' => $total,
-      'purchase_date' => $request->tanggalBeli,
-    ]);
+    try {
+      // Save purchase data
+      $purchase = Purchase::create([
+        'supplier_id' => $request->supplier_id,
+        'reference' => $request->reference,
+        'purchase_date' => $request->purchase_date,
+        'tax' => $request->order_tax ?? 0,
+        'discount' => $request->discount ?? 0,
+        'shipping' => $request->shipping ?? 0,
+        'total' => 0, // Will be calculated later
+        'status' => $request->status,
+      ]);
 
-    // Create inventory movement
-    InventoryMovement::create([
-      'product_id' => $request->product_id,
-      'purchase_id' => $purchase->id,
-      'type' => 'in', // For incoming stock
-      'quantity' => $request->qty,
-      'transaction_date' => now(),
-      'description' => 'Stock received from purchase',
-    ]);
+      $total = 0;
 
-    // Create accounting entry for the expense
-    AccountingEntry::create([
-      'description' => 'Purchase of ' . $product->name,
-      'amount' => $total,
-      'type' => 'expense',
-      'entry_date' => now(),
-      'purchase_id' => $purchase->id,
-    ]);
+      // Save purchase details
+      foreach ($request->products as $productData) {
+        $product = Product::findOrFail($productData['product_id']);
+        $subtotal = $productData['quantity'] * $productData['unit_cost'];
 
-    $product->stock += $request->qty;
-    $product->save();
+        PurchaseDetail::create([
+          'purchase_id' => $purchase->id,
+          'product_id' => $productData['product_id'],
+          'quantity' => $productData['quantity'],
+          'purchase_price' => $productData['unit_cost'],
+          'subtotal' => $subtotal,
+        ]);
 
-    DB::commit();
+        // Update total purchase value
+        $total += $subtotal;
 
-    // Redirect or return response
-    return redirect()->route('purchases.index')->with('success', 'Purchase recorded successfully!');
+        // Update product stock
+        $product->increment('quantity', $productData['quantity']);
+      }
+
+      // Calculate grand total with tax, shipping, and discount
+      $grandTotal = $total + $purchase->tax + $purchase->shipping - $purchase->discount;
+      $purchase->update(['total' => $grandTotal]);
+
+      DB::commit();
+
+      return response()->json(['message' => 'Success'], 200);
+    } catch (\Exception $e) {
+      DB::rollBack();
+
+      return response()->json([
+        'message' => 'Failed to create purchase: ' . $e->getMessage(),
+      ], 500);
+    }
   }
 
   public function edit($id)

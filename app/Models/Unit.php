@@ -7,26 +7,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class Unit extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    protected $table = 'units';
+  protected $table = 'units';
 
-    protected $primaryKey = 'id';
+  protected $primaryKey = 'id';
 
-    protected $fillable = [
-        'unit_name',
-        'description',
-        'status',
-    ];
+  protected $fillable = [
+    'unit_name',
+    'short_name',
+    'status',
+  ];
 
-    public $timestamps = true;
+  public $timestamps = true;
 
-    protected $casts = [
-        'status' => 'boolean',
-    ];
+  protected $casts = [
+    'status' => 'boolean',
+  ];
 
-    public function products()
-    {
-        return $this->hasMany(Product::class, 'unit_id');
-    }
+  public function products()
+  {
+    return $this->hasMany(Product::class, 'unit_id');
+  }
 }

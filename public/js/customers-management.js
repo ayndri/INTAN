@@ -19,8 +19,125 @@
     );
   }
 
+  $('#offCanvasForm').on('hide.bs.offcanvas', function () {
+    // Reset the form fields
+    $('#addNewCustomerForm')[0].reset();
+
+    // Reset the image preview
+    const imageContainer = document.getElementById('image-container');
+    imageContainer.style.backgroundImage = ''; // Clear the background image
+    document.getElementById('add-image-text').style.display = 'block'; // Show the placeholder text
+  });
+
+  $(document).ready(function () {
+    // AJAX call to fetch country phone codes
+    $.ajax({
+      url: '/country', // Adjust this route if necessary
+      method: 'GET',
+      success: function (response) {
+        // Assuming `response` contains an array of countries with properties `id`, `name`, `phone_code`, and `flag_url`
+        response.forEach(country => {
+          $('#phone_code').append(`
+          <option value="${country.phone_code}" data-flag="${country.flag_url}">
+            ${country.name} (+${country.phone_code})
+          </option>
+        `);
+        });
+
+        // Initialize the dropdown with flag images
+        initializeDropdownWithFlags();
+      },
+      error: function () {
+        console.error('Failed to fetch country data.');
+      }
+    });
+
+    // Function to initialize dropdown with flags
+    function initializeDropdownWithFlags() {
+      $('#phone_code').on('change', function () {
+        const selectedOption = $(this).find('option:selected');
+        $(this).css('background-repeat', 'no-repeat');
+        $(this).css('background-position', '5px center');
+      });
+
+      // Trigger change event to set initial flag (if any)
+      $('#phone_code').trigger('change');
+    }
+  });
+
+  $(document).ready(function () {
+    // Fetch all countries on page load
+    $.ajax({
+      url: '/country', // Adjust this route if necessary
+      method: 'GET',
+      success: function (response) {
+        // Assuming `response` contains an array of countries with properties `id` and `name`
+        response.forEach(country => {
+          $('#country').append(`<option value="${country.id}">${country.name}</option>`);
+        });
+      },
+      error: function () {
+        console.error('Failed to fetch countries.');
+      }
+    });
+
+    // Event listener for the country dropdown to load cities
+    $('#country').on('change', function () {
+      const countryId = $(this).val();
+
+      if (countryId) {
+        // Enable city dropdown and clear previous options
+        $('#city').prop('disabled', false).html('<option value="">Choose</option>');
+
+        // Fetch cities for the selected country
+        $.ajax({
+          url: `/country/${countryId}`,
+          method: 'GET',
+          success: function (response) {
+            console.log(response);
+            // Assuming `response` contains the cities for the selected country
+            response.forEach(city => {
+              $('#city').append(`<option value="${city.id}">${city.name}</option>`);
+            });
+          },
+          error: function () {
+            console.error('Failed to fetch cities.');
+          }
+        });
+      } else {
+        // Disable and clear the city dropdown if no country is selected
+        $('#city').prop('disabled', true).html('<option value="">Choose</option>');
+      }
+    });
+  });
+
+  function loadCities(countryId, selectedCityId = null) {
+    // Enable city dropdown and clear previous options
+    $('#city').prop('disabled', false).html('<option value="">Choose</option>');
+
+    // Fetch cities for the specified country
+    $.ajax({
+      url: `/country/${countryId}`,
+      method: 'GET',
+      success: function (response) {
+        // Assuming `response` contains the cities for the selected country
+        response.forEach(city => {
+          $('#city').append(`<option value="${city.id}">${city.name}</option>`);
+        });
+
+        // Preselect the city if provided
+        if (selectedCityId) {
+          $('#city').val(selectedCityId);
+        }
+      },
+      error: function () {
+        console.error('Failed to fetch cities.');
+      }
+    });
+  }
+
   $(document).on('input', '#add-customer-name', function () {
-    // Get the current value of the name input field
+    // Get the current value of the customer_name input field
     var customerName = $(this).val();
 
     // Convert customer name to Title Case (First letter of each word capitalized)
@@ -93,16 +210,19 @@
             data: 'id' // Customer ID
           },
           {
-            data: 'name' // Customer Name
+            data: 'customer_name' // Customer Name
           },
           {
-            data: 'email' // SKU (replacing the 'description' column)
+            data: 'code'
           },
           {
-            data: 'phone' // Customer Stock (replacing 'quantity')
+            data: 'email'
           },
           {
-            data: 'transaction_count'
+            data: 'phone'
+          },
+          {
+            data: 'country'
           },
           {
             data: 'action' // Action buttons (edit/delete)
@@ -132,14 +252,47 @@
             // User full name
             targets: 2,
             responsivePriority: 4,
-            render: function render(data, type, full, meta) {
-              var $name = full['name'];
-              return '<span class="user-email">' + $name + '</span>';
+            render: function (data, type, full, meta) {
+              var $name = full['name'],
+                $image = full['avatar']; // This now contains the complete image URL or placeholder URL
+
+              // If the product image is missing or invalid, use a placeholder image
+              if (!$image) {
+                $image = 'https://via.placeholder.com/40'; // Default placeholder image
+              }
+
+              var $output =
+                '<img src="' +
+                $image +
+                '" alt="Product Image" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">';
+
+              var $row_output =
+                '<div class="d-flex justify-content-start align-items-center user-name">' +
+                '<div class="avatar-wrapper">' +
+                '<div class="avatar avatar-sm me-3">' +
+                $output +
+                '</div>' +
+                '</div>' +
+                '<div class="d-flex flex-column">' +
+                '<span class="user-email">' +
+                $name +
+                '</span>' +
+                '</div>' +
+                '</div>';
+
+              return $row_output;
             }
           },
           {
-            // sku
             targets: 3,
+            responsivePriority: 4,
+            render: function render(data, type, full, meta) {
+              var $code = full['code'];
+              return '<span class="user-email">' + $code + '</span>';
+            }
+          },
+          {
+            targets: 4,
             responsivePriority: 4,
             render: function render(data, type, full, meta) {
               var $email = full['email'];
@@ -147,19 +300,19 @@
             }
           },
           {
-            // phone
-            targets: 4,
+            targets: 5,
+            responsivePriority: 4,
             render: function render(data, type, full, meta) {
               var $phone = full['phone'];
-              return '<span class="user-email text-center">' + $phone + '</span>';
+              return '<span class="user-email">' + $phone + '</span>';
             }
           },
           {
-            // transaction_count
-            targets: 5,
+            targets: 6,
+            responsivePriority: 4,
             render: function render(data, type, full, meta) {
-              var $transaction_count = full['transaction_count'];
-              return '<span class="user-email text-center">' + $transaction_count + '</span>';
+              var $country = full['country'];
+              return '<span class="user-email">' + $country + '</span>';
             }
           },
           {
@@ -174,6 +327,10 @@
                 '<button class="btn btn-sm btn-icon edit-record" data-id="'.concat(
                   full['id'],
                   '" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAddCustomer"><i class="ti ti-edit"></i></button>'
+                ) +
+                '<button class="btn btn-sm btn-icon delete-record" data-id="'.concat(
+                  full['id'],
+                  '"><i class="ti ti-trash"></i></button>'
                 ) +
                 '</div>'
               );
@@ -331,15 +488,15 @@
                 }
               }
             ]
+          },
+          {
+            text: '<i class="ti ti-plus me-0 me-sm-1"></i><span class="d-none d-sm-inline-block">Add New Customer</span>',
+            className: 'add-new btn btn-primary',
+            attr: {
+              'data-bs-toggle': 'offcanvas',
+              'data-bs-target': '#offcanvasAddCustomer'
+            }
           }
-          //   {
-          //     text: '<i class="ti ti-plus me-0 me-sm-1"></i><span class="d-none d-sm-inline-block">Add New Customer</span>',
-          //     className: 'add-new btn btn-primary',
-          //     attr: {
-          //       'data-bs-toggle': 'offcanvas',
-          //       'data-bs-target': '#offcanvasAddCustomer'
-          //     }
-          //   }
         ],
         // For responsive popup
         responsive: {
@@ -372,25 +529,6 @@
               return data ? $('<table class="table"/><tbody />').append(data) : false;
             }
           }
-        },
-        initComplete: function () {
-          // Adding status filter once table initialized
-          this.api()
-            .columns(3)
-            .every(function () {
-              var column = this;
-              var select = $(
-                '<select id="UserStatus" class="form-select text-capitalize"><option value=""> Select Status </option></select>'
-              )
-                .appendTo('.user_status')
-                .on('change', function () {
-                  var val = $(this).val(); // Get the selected value
-                  column.search(val).draw();
-                });
-
-              select.append('<option value="Active" class="text-capitalize">Active</option>');
-              select.append('<option value="Inactive" class="text-capitalize">Inactive</option>');
-            });
         }
       });
     }
@@ -472,10 +610,47 @@
 
       // get data
       $.get(''.concat(baseUrl, 'customers/').concat(customer_id, '/edit'), function (data) {
+        // Populate the customer ID and customer name
         $('#customer_id').val(data.id);
         $('#add-customer-name').val(data.name); // Set customer name field
-        $('#add-customer-email').val(data.email); // Set email field
-        $('#add-customer-phone').val(data.phone); // Set phone field
+
+        // Set the customer email
+        $('#add-customer-email').val(data.email);
+
+        // Set phone code and phone number
+        $('#phone_code').val(data.phone_code);
+        $('#phone_number').val(data.phone);
+
+        // Set country and city if they exist in the response
+        $('#country').val(data.country_id);
+        if (data.country_id) {
+          loadCities(data.country_id, data.city_id); // Load cities and select the saved city
+        }
+
+        // Display the customer's avatar image
+        if (data.avatar) {
+          var imageUrl;
+          if (data.avatar.startsWith('http://') || data.avatar.startsWith('https://')) {
+            // If avatar is a full URL, use it directly
+            imageUrl = data.avatar;
+          } else {
+            // Otherwise, construct the full URL using the base URL and storage path
+            imageUrl = `${baseUrl}storage/${data.avatar}`;
+          }
+
+          // Set the background image using the constructed URL
+          $('#image-container').css('background-image', `url(${imageUrl})`).show();
+          $('#add-image-text').hide(); // Hide placeholder text if image is present
+        } else {
+          // Use a placeholder image if no avatar is available
+          $('#image-container')
+            .css('background-image', 'url(https://via.placeholder.com/640x480.png/0055cc?text=Profile+Image)')
+            .show();
+          $('#add-image-text').show(); // Show placeholder text if no image
+        }
+
+        // Set the description field if it exists
+        $('#description').val(data.description || '');
       });
     });
 
@@ -483,6 +658,12 @@
     $('.add-new').on('click', function () {
       $('#customer_id').val(''); //reseting input field
       $('#offcanvasAddCustomerLabel').html('Add Customer');
+      $('#addNewCustomerForm')[0].reset();
+
+      // Reset the image preview
+      const imageContainer = document.getElementById('image-container');
+      imageContainer.style.backgroundImage = ''; // Clear the background image
+      document.getElementById('add-image-text').style.display = 'block'; // Show the placeholder text
     });
 
     // Filter form control to default size
@@ -516,7 +697,7 @@
     // user form validation
     var fv = FormValidation.formValidation(addNewCustomerForm, {
       fields: {
-        name: {
+        customer_name: {
           validators: {
             notEmpty: {
               message: 'Please enter the customer name'
@@ -524,26 +705,6 @@
             stringLength: {
               max: 100,
               message: 'The customer name must be less than 100 characters'
-            }
-          }
-        },
-        description: {
-          validators: {
-            stringLength: {
-              max: 255,
-              message: 'The description must be less than 255 characters'
-            }
-          }
-        },
-        status: {
-          validators: {
-            notEmpty: {
-              message: 'Please select the status'
-            },
-            choice: {
-              min: 0,
-              max: 1,
-              message: 'Invalid status. Please select Active or Inactive'
             }
           }
         }
@@ -564,45 +725,65 @@
         autoFocus: new FormValidation.plugins.AutoFocus()
       }
     }).on('core.form.valid', function () {
-      // adding or updating user when form successfully validate
-
-      // Get the value of the name field
+      // Get the value of the customer_name field
       var customerName = $('#add-customer-name').val();
+      var customerStatus = $('#add-customer-status').val(); // Check if the checkbox is checked
 
       // Convert customer name to Title Case (First letter of each word capitalized)
       var titleCaseCustomerName = customerName.toLowerCase().replace(/\b\w/g, function (char) {
         return char.toUpperCase();
       });
 
-      // Update the value of the name field with the Title Case version
-      $('#add-customer-name').val(titleCaseCustomerName);
+      $('#add-customer-name').val(titleCaseCustomerName); // Update the customer name with Title Case
 
+      // Create a new FormData object using the form
+      var formData = new FormData($('#addNewCustomerForm')[0]);
+
+      // Include the customer image in the form data if a file is selected
+      var customerImage = $('#customer-image')[0].files[0];
+      if (customerImage) {
+        formData.append('customer_image', customerImage);
+      }
+
+      // Make the AJAX request to submit the form data
       $.ajax({
-        data: $('#addNewCustomerForm').serialize(),
-        url: ''.concat(baseUrl, 'customers/store'),
+        data: formData,
+        url: ''.concat(baseUrl, 'customers/store'), // Your server URL
         type: 'POST',
-        success: function success(status) {
+        contentType: false, // Don't set the content type, let FormData handle it
+        processData: false, // Don't process the data, let FormData handle it
+        success: function (status) {
+          // Refresh the data table after successful submission
           dt_user.draw();
           offCanvasForm.offcanvas('hide');
 
-          // sweetalert
+          $('#addNewCustomerForm')[0].reset();
+
+          // Reset the image preview
+          const imageContainer = document.getElementById('image-container');
+          imageContainer.style.backgroundImage = ''; // Clear the background image
+          document.getElementById('add-image-text').style.display = 'block'; // Show the placeholder text
+
+          // Show success message with SweetAlert
           Swal.fire({
             icon: 'success',
             title: 'Successfully '.concat(status, '!'),
-            text: 'Customer '.concat(status, ' Successfully.'),
+            text: 'Customer '.concat(status, ' successfully.'),
             customClass: {
               confirmButton: 'btn btn-success'
             }
           });
         },
-        error: function error(err) {
+        error: function (err) {
           offCanvasForm.offcanvas('hide');
+
+          // Show error message with SweetAlert
           Swal.fire({
             title: 'Duplicate Entry!',
-            text: err,
+            text: err.responseText || 'An error occurred.',
             icon: 'error',
             customClass: {
-              confirmButton: 'btn btn-success'
+              confirmButton: 'btn btn-danger'
             }
           });
         }

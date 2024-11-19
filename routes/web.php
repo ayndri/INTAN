@@ -10,6 +10,10 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PurchasesController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\GeneralController;
+use App\Http\Controllers\SalesController;
+use App\Http\Controllers\SupplierController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,13 +38,27 @@ Route::middleware(['auth'])->group(function () {
 
   $controller_path = 'App\Http\Controllers';
 
+  Route::get('/api/products/search', [ProductController::class, 'search']);
+
   //product
   Route::group(['prefix' => 'product', 'as' => 'product.'], function () {
     Route::get('/', [ProductController::class, 'index'])->name('index');
     Route::get('/list', [ProductController::class, 'list'])->name('list');
+
     Route::post('/store', [ProductController::class, 'store'])->name('store');
-    Route::get('{product_edit}/edit', [ProductController::class, 'edit'])->name('edit');
+    Route::get('/store', [ProductController::class, 'create'])->name('create');
+
     Route::get('{product_edit}/delete', [ProductController::class, 'destroy'])->name('destroy');
+
+    Route::put('{product_edit}/edit', [ProductController::class, 'update'])->name('update');
+    Route::get('{product_edit}/edit', [ProductController::class, 'editForm'])->name('editForm');
+
+    Route::get('/low-stock', [ProductController::class, 'lowStock'])->name('lowStock');
+
+    Route::get('/list-low-stock', [ProductController::class, 'listLowStock'])->name('listLowStock');
+    Route::get('/list-out-stock', [ProductController::class, 'listOutStock'])->name('listOutStock');
+    Route::get('/generate-sku', [ProductController::class, 'generateSku'])->name('generate.sku');
+    Route::get('/generate-item-code', [ProductController::class, 'generateItemCode'])->name('generate.item.code');
   });
 
   //user
@@ -66,13 +84,33 @@ Route::middleware(['auth'])->group(function () {
     Route::get('{unit_id}/delete', [UnitController::class, 'destroy'])->name('destroy');
   });
 
+  //categories
+  Route::group(['prefix' => 'categories', 'as' => 'categories.'], function () {
+    Route::get('/', [CategoryController::class, 'index'])->name('index');
+    Route::get('/list', [CategoryController::class, 'list'])->name('list');
+    Route::post('/store', [CategoryController::class, 'store'])->name('store');
+    Route::get('{category_id}/edit', [CategoryController::class, 'edit'])->name('edit');
+    Route::get('{category_id}/delete', [CategoryController::class, 'destroy'])->name('destroy');
+  });
+
+  //supplier
+  Route::group(['prefix' => 'suppliers', 'as' => 'suppliers.'], function () {
+    Route::get('/', [SupplierController::class, 'index'])->name('index');
+    Route::get('/list', [SupplierController::class, 'list'])->name('list');
+    Route::post('/store', [SupplierController::class, 'store'])->name('store');
+    Route::get('{category_id}/edit', [SupplierController::class, 'edit'])->name('edit');
+    Route::get('{category_id}/delete', [SupplierController::class, 'destroy'])->name('destroy');
+  });
+
+  Route::get('/country/{country_id?}', [GeneralController::class, 'getCountryCity'])->name('getcountry');
+
   //customers
   Route::group(['prefix' => 'customers', 'as' => 'customers.'], function () {
     Route::get('/', [CustomerController::class, 'index'])->name('index');
     Route::get('/list', [CustomerController::class, 'list'])->name('list');
     Route::post('/store', [CustomerController::class, 'store'])->name('store');
-    Route::get('{brand_edit}/edit', [CustomerController::class, 'edit'])->name('edit');
-    // Route::get('{brand_edit}/delete', [BrandController::class, 'destroy'])->name('destroy');
+    Route::get('{customer_edit}/edit', [CustomerController::class, 'edit'])->name('edit');
+    Route::get('{customer_edit}/delete', [CustomerController::class, 'destroy'])->name('destroy');
   });
 
   //purchases
@@ -83,6 +121,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/{id_supplier?}', [PurchasesController::class, 'listProduct'])->name('products.list');
     Route::post('/store', [PurchasesController::class, 'store'])->name('store');
     Route::get('/store', [PurchasesController::class, 'insert'])->name('insert');
+    Route::get('{purchase_id}/edit', [PurchasesController::class, 'edit'])->name('edit');
+    Route::put('{purchase_id}/edit', [PurchasesController::class, 'update'])->name('update');
+    // Route::get('{purchase_id}/delete', [PurchasesController::class, 'destroy'])->name('destroy');
+  });
+
+  //sales
+  Route::group(['prefix' => 'sales', 'as' => 'sales.'], function () {
+    Route::get('/', [SalesController::class, 'index'])->name('index');
+    Route::get('/list', [SalesController::class, 'list'])->name('list');
+    Route::get('/customers/{id_supplier?}', [SalesController::class, 'listCustomer'])->name('customers.list');
+    Route::get('/products/{id_supplier?}', [SalesController::class, 'listProduct'])->name('products.list');
+    Route::post('/store', [PurchasesController::class, 'store'])->name('store');
+    Route::get('/store', [SalesController::class, 'insert'])->name('insert');
     Route::get('{purchase_id}/edit', [PurchasesController::class, 'edit'])->name('edit');
     Route::put('{purchase_id}/edit', [PurchasesController::class, 'update'])->name('update');
     // Route::get('{purchase_id}/delete', [PurchasesController::class, 'destroy'])->name('destroy');

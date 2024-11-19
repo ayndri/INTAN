@@ -6,31 +6,36 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
-    public function up()
-    {
-        Schema::create('suppliers', function (Blueprint $table) {
-            $table->bigIncrements('id'); // Primary key
-            $table->string('name', 255); // Nama supplier
-            $table->string('email', 255)->unique(); // Email supplier, unik
-            $table->string('phone', 20)->nullable(); // Nomor telepon supplier, opsional
-            $table->text('address')->nullable(); // Alamat supplier, opsional
-            $table->boolean('status')->default(true); // Status supplier (aktif atau tidak)
-            $table->timestamps(); // Kolom created_at dan updated_at otomatis
-        });
-    }
+  /**
+   * Run the migrations.
+   *
+   * @return void
+   */
+  public function up()
+  {
+    Schema::create('suppliers', function (Blueprint $table) {
+      $table->bigIncrements('id'); // Primary key
+      $table->string('name', 255);
+      $table->string('email', 255)->unique();
+      $table->string('phone_code')->nullable();
+      $table->string('phone', 20)->nullable();
+      $table->text('address')->nullable();
+      $table->integer('city_id')->nullable();
+      $table->integer('country_id')->nullable();
+      $table->string('avatar')->nullable();
+      $table->text('description')->nullable();
+      $table->string('code')->nullable()->unique();
+      $table->timestamps();
+    });
+  }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
-    public function down()
-    {
-        Schema::dropIfExists('suppliers');
-    }
+  /**
+   * Reverse the migrations.
+   *
+   * @return void
+   */
+  public function down()
+  {
+    Schema::dropIfExists('suppliers');
+  }
 };

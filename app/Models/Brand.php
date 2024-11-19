@@ -7,35 +7,35 @@ use Illuminate\Database\Eloquent\Model;
 
 class Brand extends Model
 {
-    use HasFactory;
+  use HasFactory;
 
-    // Table name
-    protected $table = 'brands';
+  // Table name
+  protected $table = 'brands';
 
-    // Primary key
-    protected $primaryKey = 'id';
+  // Primary key
+  protected $primaryKey = 'id';
 
-    // Fillable fields
-    protected $fillable = [
-        'brand_name',
-        'description',
-        'status',
-    ];
+  // Fillable fields
+  protected $fillable = [
+    'brand_name',
+    'status',
+    'image',
+  ];
 
-    // Timestamps
-    public $timestamps = true;
+  // Timestamps
+  public $timestamps = true;
 
-    // Casting status as a boolean
-    protected $casts = [
-        'status' => 'boolean',
-    ];
+  // Casting status as a boolean
+  protected $casts = [
+    'status' => 'boolean',
+  ];
 
-    /**
-     * Relationship with the Product model
-     * Assuming the products table has a foreign key 'brand_id'
-     */
-    public function products()
-    {
-        return $this->hasMany(Product::class, 'brand_id', 'id');
-    }
+  /**
+   * Relationship with the Product model
+   * Assuming the products table has a foreign key 'brand_id'
+   */
+  public function products()
+  {
+    return $this->hasMany(Product::class, 'brand_id', 'id');
+  }
 }

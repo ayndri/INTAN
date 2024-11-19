@@ -132,7 +132,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/list', [SalesController::class, 'list'])->name('list');
     Route::get('/customers/{id_supplier?}', [SalesController::class, 'listCustomer'])->name('customers.list');
     Route::get('/products/{id_supplier?}', [SalesController::class, 'listProduct'])->name('products.list');
-    Route::post('/store', [PurchasesController::class, 'store'])->name('store');
+    Route::post('/store', [SalesController::class, 'store'])->name('store');
     Route::get('/store', [SalesController::class, 'insert'])->name('insert');
     Route::get('{purchase_id}/edit', [PurchasesController::class, 'edit'])->name('edit');
     Route::put('{purchase_id}/edit', [PurchasesController::class, 'update'])->name('update');

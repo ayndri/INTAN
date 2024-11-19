@@ -25,7 +25,7 @@
 @endsection
 
 @section('page-script')
-<script src="{{asset('js/sales-management.js')}}"></script>
+<script src="{{asset('js/sale/sales-management.js')}}"></script>
 <script src="{{asset('js/sale/sweetalert-messages.js')}}"></script>
 @endsection
 
@@ -47,12 +47,11 @@
         <tr>
           <th></th>
           <th>Id</th>
-          <th>Product Name</th>
-          <th>Supplier Name</th>
-          <th>Sale Date</th>
+          <th>Customer Name</th>
+          <th>Purchase Date</th>
+          <th>Status</th>
           <th>Total</th>
           <th>Actions</th>
-
         </tr>
       </thead>
     </table>

@@ -19,8 +19,8 @@ return new class extends Migration
       $table->unsignedBigInteger('customer_id');
       $table->decimal('total', 15, 2); // Total sale value
       $table->timestamp('sale_date')->default(DB::raw('CURRENT_TIMESTAMP'));
-      $table->enum('status', ['pending', 'in-progress', 'completed', 'cancelled'])->default('pending');
-      $table->enum('order_type', ['online', 'offline'])->default('offline');
+      $table->string('status')->default('pending');
+      $table->string('order_type')->default('offline');
       $table->decimal('shipping_cost', 15, 2)->nullable(); // Shipping cost if any
 
       // Foreign key for customers

@@ -5,8 +5,8 @@ $(document).ready(function () {
     allowClear: true
   });
 
-  // Initialize Flatpickr for the purchase date input
-  $('#purchaseDate').flatpickr({
+  // Initialize Flatpickr for the sale date input
+  $('#saleDate').flatpickr({
     enableTime: true,
     altFormat: 'Y-m-dTH:i:S',
     onReady: function (selectedDates, dateStr, instance) {
@@ -16,22 +16,22 @@ $(document).ready(function () {
     }
   });
 
-  // Load supplier options via AJAX
-  loadOptions('/purchases/suppliers', '#formValidationSupplier');
+  // Load customer options via AJAX
+  loadOptions('/sales/customers', '#formValidationCustomer');
 
   // Load product options via AJAX
-  loadOptions('/purchases/products', '#formValidationProduct');
+  loadOptions('/sales/products', '#formValidationProduct');
 
   $('#tanggalBeli').prop('disabled', true);
-  // Handle supplier selection
-  $('#formValidationSupplier').on('change', function () {
-    const supplierId = $(this).val();
-    if (supplierId) {
-      fetchSupplierDetails(supplierId);
+  // Handle customer selection
+  $('#formValidationCustomer').on('change', function () {
+    const customerId = $(this).val();
+    if (customerId) {
+      fetchCustomerDetails(customerId);
       // Enable product selection
       $('#formValidationProduct').prop('disabled', false);
     } else {
-      clearSupplierDetails();
+      clearCustomerDetails();
     }
   });
 
@@ -65,31 +65,31 @@ $(document).ready(function () {
     });
   }
 
-  // Function to fetch supplier details
-  function fetchSupplierDetails(supplierId) {
+  // Function to fetch customer details
+  function fetchCustomerDetails(customerId) {
     $.ajax({
-      url: `/purchases/suppliers/${supplierId}`,
+      url: `/sales/customers/${customerId}`,
       method: 'GET',
-      success: function (supplier) {
-        $('#supplierEmail').val(supplier.email);
-        $('#supplierPhone').val(supplier.phone);
-        $('#supplierAddress').val(supplier.address);
+      success: function (customer) {
+        $('#customerEmail').val(customer.email);
+        $('#customerPhone').val(customer.phone);
+        $('#customerAddress').val(customer.address);
       },
       error: function () {
-        alert('Failed to fetch supplier details');
+        alert('Failed to fetch customer details');
       }
     });
   }
 
-  // Function to clear supplier details
-  function clearSupplierDetails() {
-    $('#supplierEmail, #supplierPhone, #supplierAddress').val('');
+  // Function to clear customer details
+  function clearCustomerDetails() {
+    $('#customerEmail, #customerPhone, #customerAddress').val('');
   }
 
   // Function to fetch product details
   function fetchProductDetails(productId) {
     $.ajax({
-      url: `/purchases/products/${productId}`,
+      url: `/sales/products/${productId}`,
       method: 'GET',
       success: function (product) {
         $('#productQty').val(product.stock);
@@ -407,11 +407,11 @@ $(document).ready(function () {
         // Show success message with SweetAlert
         Swal.fire({
           icon: 'success',
-          title: 'Purchase Created!',
-          text: 'The purchase has been successfully created.',
+          title: 'Sale Created!',
+          text: 'The sale has been successfully created.',
           customClass: { confirmButton: 'btn btn-success' }
         }).then(() => {
-          window.location.href = 'http://intan-web.test/purchases';
+          window.location.href = 'http://intan-web.test/sales';
         });
 
         // Optional: Reset form after success (if not redirecting immediately)
@@ -422,7 +422,7 @@ $(document).ready(function () {
         Swal.fire({
           icon: 'error',
           title: 'Error!',
-          text: err.responseJSON?.message || 'An error occurred while creating the purchase.',
+          text: err.responseJSON?.message || 'An error occurred while creating the sale.',
           customClass: { confirmButton: 'btn btn-danger' }
         });
       }

@@ -47,33 +47,19 @@
       <div class="card-body">
         <form id="formValidationExamples" class="row g-3" method="POST" action="{{ route('sales.store') }}">
           @csrf
-          <!-- Supplier Section -->
+          <!-- Customer Section -->
           <div class="col-12">
-            <h6 class="fw-semibold">1. Supplier</h6>
+            <h6 class="fw-semibold">1. Customer</h6>
             <hr class="mt-0" />
           </div>
 
-          <div class="col-md-6">
-            <label class="form-label" for="formValidationSupplier">Supplier</label>
-            <select id="formValidationSupplier" name="supplier_id" class="form-select select2" data-allow-clear="true" required>
-              <option value="" disabled selected>Select Supplier</option>
+          <div class="col-md-12">
+            <label class="form-label" for="formValidationCustomer">Customer</label>
+            <select id="formValidationCustomer" name="customer_id" class="form-select select2" data-allow-clear="true" required>
+              <option value="" disabled selected>Select Customer</option>
               <!-- Populate dynamically -->
             </select>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label" for="supplierEmail">Supplier Email</label>
-            <input type="text" id="supplierEmail" class="form-control" readonly>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label" for="supplierPhone">Supplier Phone</label>
-            <input type="text" id="supplierPhone" class="form-control" readonly>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label" for="supplierAddress">Supplier Address</label>
-            <input type="text" id="supplierAddress" class="form-control" readonly>
+            <input type="text" id="manualCustomerInput" class="form-control mt-2 d-none" placeholder="Enter customer name manually">
           </div>
 
           <!-- Product Section -->
@@ -139,8 +125,12 @@
 
           <div class="row g-4">
             <div class="col-md-6">
-              <label class="form-label" for="reference">Reference</label>
-              <input type="text" id="reference" name="reference" class="form-control" required>
+              <label class="form-label" for="formValidationOrderType">Order Type</label>
+              <select id="order_type" name="order_type" class="form-select" required>
+                <option value="" disabled selected>Select Order Type</option>
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+              </select>
             </div>
 
             <!-- Sale Date -->
@@ -165,8 +155,10 @@
               <label class="form-label" for="status">Status</label>
               <select id="status" name="status" class="form-select" required>
                 <option value="" disabled selected>Select Status</option>
-                <option value="Received">Received</option>
-                <option value="Pending">Pending</option>
+                <option value="pending">Pending</option>
+                <option value="in-progress">In Progress</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
               </select>
             </div>
           </div>

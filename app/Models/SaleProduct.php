@@ -9,7 +9,7 @@ class SaleProduct extends Model
 {
   use HasFactory;
 
-  protected $table = 'sale_product';
+  protected $table = 'sale_products';
 
   // Define the fillable fields for mass assignment
   protected $fillable = [

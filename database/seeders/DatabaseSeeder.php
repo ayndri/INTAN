@@ -55,6 +55,8 @@ class DatabaseSeeder extends Seeder
     \App\Models\Supplier::factory(10)->create();  // Membuat 20 supplier
     \App\Models\Customer::factory(10)->create();  // Membuat 20 customer
 
+    \App\Models\Product::factory(10)->create();
+
     // // Create 30 products and associate them with existing units and brands
     // Product::factory(30)->create()->each(function ($product) {
     //     // Randomly select a brand and unit

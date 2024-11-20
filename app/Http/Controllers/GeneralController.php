@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Country;
+use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 
 class GeneralController extends Controller
@@ -24,5 +27,18 @@ class GeneralController extends Controller
     }
 
     return response()->json($countries);
+  }
+
+  public function dashboard()
+  {
+    $customer = Customer::count();
+    $sales = Sale::count();
+    $products = Product::count();
+
+    return view('content.home.home', [
+      'customers' => $customer,
+      'sales' => $sales,
+      'products' => $products
+    ]);
   }
 }

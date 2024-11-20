@@ -139,11 +139,15 @@ Route::middleware(['auth'])->group(function () {
     // Route::get('{purchase_id}/delete', [PurchasesController::class, 'destroy'])->name('destroy');
   });
 
+  Route::group(['prefix' => 'dashboard', 'as' => 'dashboard.'], function () {
+    Route::get('/', [GeneralController::class, 'dashboard'])->name('dashboard');
+  });
+
   // Main Page Route
-  Route::get('/dashboard', $controller_path . '\dashboard\Analytics@index')->name('dashboard');
-  Route::get('/dashboard/analytics', $controller_path . '\dashboard\Analytics@index')->name('dashboard-analytics');
-  Route::get('/dashboard/crm', $controller_path . '\dashboard\Crm@index')->name('dashboard-crm');
-  Route::get('/dashboard/ecommerce', $controller_path . '\dashboard\Ecommerce@index')->name('dashboard-ecommerce');
+  // Route::get('/dashboard', $controller_path . '\dashboard\Analytics@index')->name('dashboard');
+  // Route::get('/dashboard/analytics', $controller_path . '\dashboard\Analytics@index')->name('dashboard-analytics');
+  // Route::get('/dashboard/crm', $controller_path . '\dashboard\Crm@index')->name('dashboard-crm');
+  // Route::get('/dashboard/ecommerce', $controller_path . '\dashboard\Ecommerce@index')->name('dashboard-ecommerce');
 
   // locale
   Route::get('lang/{locale}', $controller_path . '\language\LanguageController@swap');

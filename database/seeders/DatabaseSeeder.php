@@ -7,7 +7,9 @@ use App\Models\Brand;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\PurchaseDetail;
 use App\Models\Sale;
+use App\Models\SaleProduct;
 use App\Models\Unit;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -56,6 +58,16 @@ class DatabaseSeeder extends Seeder
     \App\Models\Customer::factory(10)->create();  // Membuat 20 customer
 
     \App\Models\Product::factory(10)->create();
+
+    Purchase::factory()
+      ->count(10)
+      ->has(PurchaseDetail::factory()->count(rand(2, 5)))
+      ->create();
+
+    Sale::factory()
+      ->count(10)
+      ->has(SaleProduct::factory()->count(rand(2, 5)))
+      ->create();
 
     // // Create 30 products and associate them with existing units and brands
     // Product::factory(30)->create()->each(function ($product) {

@@ -16,7 +16,7 @@
 @endsection
 
 @section('page-script')
-<script src="{{asset('assets/js/dashboards-ecommerce.js')}}"></script>
+<script src="{{asset('js/home-management.js')}}"></script>
 @endsection
 
 @section('content')
@@ -29,8 +29,8 @@
           <div class="card-body text-nowrap">
             <h5 class="card-title mb-0">Congratulations {{Auth::user()->name}}! 🎉</h5>
             <p class="mb-2">Best seller of the month</p>
-            <h4 class="text-primary mb-1">$48.9k</h4>
-            <a href="javascript:;" class="btn btn-primary">View Sales</a>
+            <h4 class="text-primary mb-1">{{$profit}}</h4>
+            <a href="/sales" class="btn btn-primary">View Sales</a>
           </div>
         </div>
         <div class="col-5 text-center text-sm-left">
@@ -85,7 +85,7 @@
             <div class="d-flex align-items-center">
               <div class="badge rounded-pill bg-label-success me-3 p-2"><i class="ti ti-currency-dollar ti-sm"></i></div>
               <div class="card-info">
-                <h5 class="mb-0">$9745</h5>
+                <h5 class="mb-0" id="revenue-display">{{$revenue}}</h5>
                 <small>Revenue</small>
               </div>
             </div>
@@ -102,13 +102,14 @@
       <div class="col-xl-6 mb-4 col-md-3 col-6">
         <div class="card">
           <div class="card-header pb-0">
-            <h5 class="card-title mb-0">82.5k</h5>
+            <h5 class="card-title mb-0">{{$expenses}}</h5>
             <small class="text-muted">Expenses</small>
           </div>
           <div class="card-body">
             <div id="expensesChart"></div>
+            <input type="hidden" id="formattedPercentage" value={{$formattedPercentage}}>
             <div class="mt-md-2 text-center mt-lg-3 mt-3">
-              <small class="text-muted mt-3">$21k Expenses more than last month</small>
+              <small class="text-muted mt-3">{{$increaseInExpenses}} Expenses more than last month</small>
             </div>
           </div>
         </div>
@@ -125,7 +126,7 @@
           <div class="card-body">
             <div id="profitLastMonth"></div>
             <div class="d-flex justify-content-between align-items-center mt-3 gap-3">
-              <h4 class="mb-0">624k</h4>
+              <h6 class="mb-0">{{$profit}}</h6>
               <small class="text-success">+8.24%</small>
             </div>
           </div>
@@ -301,90 +302,22 @@
       </div>
       <div class="card-body">
         <ul class="p-0 m-0">
+          @foreach ($popularProducts as $product)
           <li class="d-flex mb-4 pb-1">
             <div class="me-3">
-              <img src="{{ asset('assets/img/products/iphone.png') }}" alt="User" class="rounded" width="46">
+              <img src="{{count($product->images) > 0 ? asset('storage/' . $product->image) : 'https://via.placeholder.com/640x480.png/0055cc?text=technics+facilis' }}" alt="{{ $product->name }}" class="rounded" width="46">
             </div>
             <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
               <div class="me-2">
-                <h6 class="mb-0">Apple iPhone 13</h6>
-                <small class="text-muted d-block">Item: #FXZ-4567</small>
+                <h6 class="mb-0">{{ $product->name }}</h6>
+                <small class="text-muted d-block">Item: #{{ $product->sku }}</small>
               </div>
               <div class="user-progress d-flex align-items-center gap-1">
-                <p class="mb-0 fw-semibold">$999.29</p>
+                <p class="mb-0 fw-semibold">{{$product->sell_price}}</p>
               </div>
             </div>
           </li>
-          <li class="d-flex mb-4 pb-1">
-            <div class="me-3">
-              <img src="{{asset('assets/img/products/nike-air-jordan.png')}}" alt="User" class="rounded" width="46">
-            </div>
-            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-              <div class="me-2">
-                <h6 class="mb-0">Nike Air Jordan</h6>
-                <small class="text-muted d-block">Item: #FXZ-3456</small>
-              </div>
-              <div class="user-progress d-flex align-items-center gap-1">
-                <p class="mb-0 fw-semibold">$72.40</p>
-              </div>
-            </div>
-          </li>
-          <li class="d-flex mb-4 pb-1">
-            <div class="me-3">
-              <img src="{{asset('assets/img/products/headphones.png')}}" alt="User" class="rounded" width="46">
-            </div>
-            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-              <div class="me-2">
-                <h6 class="mb-0">Beats Studio 2</h6>
-                <small class="text-muted d-block">Item: #FXZ-9485</small>
-              </div>
-              <div class="user-progress d-flex align-items-center gap-1">
-                <p class="mb-0 fw-semibold">$99</p>
-              </div>
-            </div>
-          </li>
-          <li class="d-flex mb-4 pb-1">
-            <div class="me-3">
-              <img src="{{asset('assets/img/products/apple-watch.png')}}" alt="User" class="rounded" width="46">
-            </div>
-            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-              <div class="me-2">
-                <h6 class="mb-0">Apple Watch Series 7</h6>
-                <small class="text-muted d-block">Item: #FXZ-2345</small>
-              </div>
-              <div class="user-progress d-flex align-items-center gap-1">
-                <p class="mb-0 fw-semibold">$249.99</p>
-              </div>
-            </div>
-          </li>
-          <li class="d-flex mb-4 pb-1">
-            <div class="me-3">
-              <img src="{{asset('assets/img/products/amazon-echo.png')}}" alt="User" class="rounded" width="46">
-            </div>
-            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-              <div class="me-2">
-                <h6 class="mb-0">Amazon Echo Dot</h6>
-                <small class="text-muted d-block">Item: #FXZ-8959</small>
-              </div>
-              <div class="user-progress d-flex align-items-center gap-1">
-                <p class="mb-0 fw-semibold">$79.40</p>
-              </div>
-            </div>
-          </li>
-          <li class="d-flex">
-            <div class="me-3">
-              <img src="{{asset('assets/img/products/play-station.png')}}" alt="User" class="rounded" width="46">
-            </div>
-            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-              <div class="me-2">
-                <h6 class="mb-0">Play Station Console</h6>
-                <small class="text-muted d-block">Item: #FXZ-7892</small>
-              </div>
-              <div class="user-progress d-flex align-items-center gap-1">
-                <p class="mb-0 fw-semibold">$129.48</p>
-              </div>
-            </div>
-          </li>
+          @endforeach
         </ul>
       </div>
     </div>
@@ -598,7 +531,7 @@
   <!--/ Sales by Countries tabs -->
 
   <!-- Transactions -->
-  <div class="col-md-6 col-lg-4 mb-4 mb-lg-0">
+  <!-- <div class="col-md-6 col-lg-4 mb-4 mb-lg-0">
     <div class="card h-100">
       <div class="card-header d-flex justify-content-between">
         <div class="card-title m-0 me-2">
@@ -719,11 +652,11 @@
         </ul>
       </div>
     </div>
-  </div>
+  </div> -->
   <!--/ Transactions -->
 
   <!-- Invoice table -->
-  <div class="col-lg-8">
+  <!-- <div class="col-lg-8">
     <div class="card h-100">
       <div class="table-responsive card-datatable">
         <table class="table datatable-invoice border-top">
@@ -741,8 +674,7 @@
         </table>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Invoice table -->
 </div>
-
 @endsection

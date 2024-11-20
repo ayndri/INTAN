@@ -21,17 +21,15 @@ class PurchaseFactory extends Factory
   protected $model = Purchase::class;
   public function definition()
   {
-    $quantity = $this->faker->numberBetween(1, 100); // Quantity of products purchased
-    $costPrice = $this->faker->numberBetween(10000, 1000000) . '.00';
-    $total = $quantity * $costPrice; // Calculate total purchase price
-
     return [
-      'product_id' => Product::inRandomOrder()->first()->id, // Generate a random product_id
-      'supplier_id' => Supplier::inRandomOrder()->first()->id, // Generate a random supplier_id
-      'quantity' => $quantity,
-      'cost_price' => $costPrice,
-      'total' => $total, // Calculated total
-      'purchase_date' => $this->faker->dateTimeThisYear(), // Random purchase date within this year
+      'supplier_id' => Supplier::inRandomOrder()->first()->id,
+      'tax' => $this->faker->randomFloat(2, 0, 1000),
+      'discount' => $this->faker->randomFloat(2, 0, 500),
+      'shipping' => $this->faker->randomFloat(2, 0, 200),
+      'total' => $this->faker->randomFloat(2, 500, 5000),
+      'purchase_date' => $this->faker->dateTimeThisYear(),
+      'reference' => $this->faker->unique()->bothify('REF###??'),
+      'status' => $this->faker->randomElement(['pending', 'completed', 'cancelled']),
     ];
   }
 }

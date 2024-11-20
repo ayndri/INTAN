@@ -183,3 +183,14 @@ class Helpers
     }
   }
 }
+
+if (! function_exists('formatRupiah')) {
+  function formatRupiah($value)
+  {
+    // Pastikan input adalah angka
+    $value = is_numeric($value) ? $value : 0;
+
+    // Format angka ke format Rupiah
+    return 'Rp ' . number_format($value, 0, ',', '.');
+  }
+}
